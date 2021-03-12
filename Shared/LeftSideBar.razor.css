@@ -1,0 +1,42 @@
+﻿.sidebar .sidebar-menu ul li:hover i::before {
+    display: inline-block;
+    animation: swing ease-in-out 0.5s 1 alternate;
+}
+
+@keyframes swing {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    10% {
+        transform: rotate(10deg);
+    }
+
+    30% {
+        transform: rotate(0deg);
+    }
+
+    40% {
+        transform: rotate(-10deg);
+    }
+
+    50% {
+        transform: rotate(0deg);
+    }
+
+    60% {
+        transform: rotate(5deg);
+    }
+
+    70% {
+        transform: rotate(0deg);
+    }
+
+    80% {
+        transform: rotate(-5deg);
+    }
+
+    100% {
+        transform: rotate(0deg);
+    }
+}

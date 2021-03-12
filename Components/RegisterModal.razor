@@ -1,0 +1,85 @@
+﻿<Modal @ref="Modal" DialogClass="modal-login" DialogStyle="width: 450px;">
+    <Title>Sign Up</Title>
+    <Body>
+        <EditForm OnSubmit="OnSubmit" Model="user">
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="fa fa-at"></i></span>
+                    <InputText class="form-control" @bind-Value="@user.EmailAddress" placeholder="Email" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="fa fa-user"></i></span>
+                    <InputText class="form-control" @bind-Value="@user.Username" placeholder="Username" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="fa fa-lock"></i></span>
+                    <InputText class="form-control" type="password" @bind-Value="@user.Password" placeholder="Password" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="fa fa-lock"></i></span>
+                    <InputText class="form-control" type="password"
+                               @bind-Value="@user.PasswordConfirmation" placeholder="Confirm Password" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="custom-control custom-checkbox">
+                    <InputCheckbox class="custom-control-input" @bind-Value="user.AgreementConfirmation" id="register-form-agreement"/>
+                    <label class="custom-control-label" for="register-form-agreement">Agree</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary btn-block btn-lg">Sign Up</button>
+            </div>
+        </EditForm>
+    </Body>
+    <Footer>
+        Already have an account? &nbsp; <span class="link" @onclick="ShowLoginModal">Sign In</span>
+    </Footer>
+</Modal>
+
+<style>
+    .login-modal .form-check-label {
+    }
+</style>
+
+@code{
+        [Parameter]
+        public LoginModal LoginModal { get; set; }
+
+    private Modal Modal;
+
+    private void ShowLoginModal()
+    {
+        Modal.Close();
+        LoginModal.Show();
+    }
+
+    private void OnSubmit()
+    {
+
+    }
+
+    class User
+    {
+        public string EmailAddress { get; set; }
+        public string Username { get; set; }
+        public string Password { get; set; }
+        public string PasswordConfirmation { get; set; }
+        public bool AgreementConfirmation { get; set; }
+    }
+    private User user;
+
+    public void Show() => Modal.Show();
+
+    protected override void OnInitialized()
+    {
+        user = new User() { AgreementConfirmation = false};
+        base.OnInitialized();
+    }
+}

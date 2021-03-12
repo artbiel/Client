@@ -1,0 +1,45 @@
+﻿@inject IState<ArticleState> ArticleState
+
+<EditForm Model="@articleText">
+    <InputText @bind-Value="@articleTitle" class="article-title-edit" />
+</EditForm>
+<RadzenHtmlEditor @bind-Value="articleText" UploadUrl="upload/image" class="article-content-edit">
+
+</RadzenHtmlEditor>
+
+<style>
+    .article-title-edit {
+        padding: 0;
+        line-height: 1.2;
+        font-size: 2.25rem;
+        font-weight: bold;
+        border: none;
+        width: 100%;
+        background-color: @Theme.BackgroundOptions.Body;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .article-content-edit{
+        border: none;
+        font-family: inherit;
+    }
+
+    input:focus {
+        border: none;
+        outline: none;
+    }
+</style>
+
+@code {
+    string articleTitle = "";
+    string articleText = "";
+
+    [CascadingParameter(Name = "Theme")]
+    public Theme Theme { get; set; }
+
+    protected override void OnInitialized()
+    {
+        articleTitle = ArticleState.Value.CurrentArticle.Title;
+        articleText = string.Join("", ArticleState.Value.CurrentWords);
+    }
+}

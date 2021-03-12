@@ -1,0 +1,69 @@
+﻿<div class="rating-wrapper">
+    <div class="stars-wrapper">
+        @for (int i = 0; i < foolStars; i++)
+        {
+            <span class="fa fa-star"></span>
+        }
+        @if (hasAnHalfStar)
+        {
+            <span class="fa fa-star-half-o"></span>
+        }
+        @for (int i = 0; i < emptyStars; i++)
+        {
+            <span class="fa fa-star-o"></span>
+        }
+    </div>
+    <span class="rating">
+        @Rating
+    </span>
+    <span class="total">
+        (@Total)
+    </span>
+</div>
+
+<style>
+    .stars-wrapper {
+        display: inline-block;
+        min-width: 80px;
+    }
+
+    .rating, .total{
+        color: @Theme.SideBarOptions.Color
+    }
+
+    .rating{
+        margin-right: 3px;
+    }
+
+    .fa-star, .fa-star-half-o, .fa-star-o {
+        color: orange;
+    }
+
+
+</style>
+
+@code {
+    private readonly double MAX_NUMBER_OF_STARS = 5;
+    private int foolStars = 0;
+    private bool hasAnHalfStar = false;
+    private int emptyStars = 5;
+
+    [CascadingParameter(Name = "Theme")]
+    public Theme Theme { get; set; }
+
+    [Parameter]
+    public double Rating { get; set; } = 0;
+
+    [Parameter]
+    public int Total { get; set; } = 0;
+
+    protected override void OnInitialized()
+    {
+        if (Rating < 0 || Rating > MAX_NUMBER_OF_STARS)
+            throw new ArgumentException($"Rating shold be in range (0;{MAX_NUMBER_OF_STARS})");
+        foolStars = (int)Math.Floor(Rating);
+        hasAnHalfStar = Rating - foolStars >= 0.5;
+        emptyStars = (int)(MAX_NUMBER_OF_STARS - foolStars - (hasAnHalfStar ? 1 : 0));
+
+    }
+}

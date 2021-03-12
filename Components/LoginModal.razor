@@ -1,0 +1,66 @@
+﻿<Modal @ref="Modal" DialogClass="modal-login" DialogStyle="width: 350px;">
+    <Title>Sign In</Title>
+    <Body>
+        <EditForm OnSubmit="OnSubmit" Model="user">
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="fa fa-user"></i></span>
+                    <InputText class="form-control" @bind-Value="@user.Username" placeholder="Username" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="fa fa-lock"></i></span>
+                    <InputText class="form-control" type="password" @bind-Value="@user.Password" placeholder="Password" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="custom-control custom-checkbox">
+                    <InputCheckbox class="custom-control-input" @bind-Value="user.RememberMe" id="login-form-agreement" />
+                    <label class="custom-control-label" for="login-form-agreement">Remember me</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary btn-block btn-lg">Sign In</button>
+            </div>
+        </EditForm>
+        <p class="hint-text"><span class="link">Forgot Password?</span></p>
+    </Body>
+    <Footer>
+        Don't have an account??? &nbsp; <span class="link" @onclick="ShowRegisterModal">Create one</span>
+    </Footer>
+</Modal>
+
+@code{
+    private Modal Modal;
+
+    [Parameter]
+    public RegisterModal RegisterModal { get; set; }
+
+    private void ShowRegisterModal()
+    {
+        Modal.Close();
+        RegisterModal.Show();
+    }
+
+    private void OnSubmit()
+    {
+
+    }
+
+    class User
+    {
+        public string Username { get; set; }
+        public string Password { get; set; }
+        public bool RememberMe { get; set; }
+    }
+    private User user;
+
+    public void Show() => Modal.Show();
+
+    protected override void OnInitialized()
+    {
+        user = new User();
+        base.OnInitialized();
+    }
+}

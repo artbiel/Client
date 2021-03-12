@@ -1,0 +1,104 @@
+﻿@if (Commits != null)
+{
+    <div class="history">
+        <div class="history-list">
+            @foreach (var commit in Commits)
+            {
+                <HistoryItemComponent Commit="commit" IsActive="commit == ActiveCommit" ToggleIsActive="SetActiveCommit" />
+            }
+        </div>
+    </div>
+}
+
+@code{
+    [Parameter]
+    public List<CommitViewModel> Commits { get; set; }
+
+    [Parameter]
+    public CommitViewModel ActiveCommit { get; set; }
+
+    private void SetActiveCommit(CommitViewModel commit)
+    {
+        ActiveCommit = commit;
+        Console.WriteLine(ActiveCommit?.Id);
+    }
+}
+
+<style>
+    .history {
+        margin-bottom: 1rem;
+        overflow: auto;
+    }
+
+    .history-item {
+        border-left: 1px solid #e5e5e5;
+        position: relative;
+        padding: 10px 10px 5px 40px;
+        font-size: .9rem;
+        margin-left: 2rem;
+        min-height: 5rem
+    }
+
+        .history-item:last-child {
+            padding-bottom: 4rem
+        }
+
+    .history-item-header {
+        cursor: pointer;
+    }
+
+    .history-item .history-title {
+        font-size: 17px;
+        font-weight: 500;
+    }
+
+    .history-item .history-content {
+        font-size: 14px;
+    }
+
+        .history-item .history-content .history-author {
+            line-height: 16px;
+        }
+
+        .history-item .history-content .history-date {
+            font-size: 12px;
+            color: #888;
+            margin: 2px 0 4px 0;
+        }
+
+        .history-item .history-content span {
+            color: #888;
+            font-size: 85%
+        }
+
+        .history-item .history-content hr {
+            margin: 10px 0 0 0;
+        }
+
+    .history-item .history-description{
+        line-height: 17px;
+        font-size: 13px;
+    }
+
+    .history-item .history-icon {
+        line-height: 2.6rem;
+        position: absolute;
+        left: -1.3rem;
+        width: 2.6rem;
+        height: 2.6rem;
+        text-align: center;
+        border-radius: 50%;
+        border: 1px solid #e5e5e5;
+        font-size: 40px;
+        color: #e5e5e5;
+        border: 1px solid #e5e5e5;
+    }
+
+    .history-item .history-icon-active {
+        color: #19aa8d;
+        background-color: #179b81;
+        -webkit-box-shadow: 0px 0px 20px 2px rgba(12, 176, 143, 0.23);
+        -moz-box-shadow: 0px 0px 20px 2px rgba(12, 176, 143, 0.23);
+        box-shadow: 0px 0px 20px 2px rgba(12, 176, 143, 0.23);
+    }
+</style>

@@ -1,0 +1,43 @@
+﻿@inherits FluxorComponent
+@inject IState<DevModeState> DevModeState
+
+<div class="node-content group">
+        <div class="node-content-title" @onclick="ToggleDisplay">
+            <i class="fa fa-chevron-right" style=@(Display ? "transform: rotate(90deg); margin-right: 10px;" : "")></i>
+            <span>
+                @(DevModeState.Value.Enabled ? $"<{Record.Name}>" : Record.Name)
+            </span>
+        </div>
+        <TreeViewItemEditComponent Record="Record"/>
+</div>
+@if (Record.Children.Count > 0 && Display)
+{
+    <div class="node-child">
+        @foreach (var record in Record.Children)
+        {
+            <TreeViewItemComponent ActiveRecords="ActiveRecords" Record="record" />
+        }
+    </div>
+}
+
+
+@code {
+    [Parameter]
+    public RecordMainInfoViewModel Record { get; set; }
+
+    [Parameter]
+    public List<RecordMainInfoViewModel> ActiveRecords { get; set; }
+
+    private bool Display = false;
+
+    private void ToggleDisplay()
+    {
+        Display = !Display;
+        StateHasChanged();
+    }
+
+    protected override void OnParametersSet()
+    {
+        Display = ActiveRecords.Contains(Record) || Display;
+    }
+}

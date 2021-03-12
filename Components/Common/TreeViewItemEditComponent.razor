@@ -1,0 +1,26 @@
+﻿@inject IDispatcher Dispatcher
+
+<div class="add-items-wrapper">
+    <div class="add-item" title="Добавить">
+        <RadzenIcon Icon="plus" Style="margin: 0" @onclick="AddRecord"></RadzenIcon>
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    public RecordMainInfoViewModel Record { get; set; }
+
+    private void AddRecord()
+    {
+        Record = new RecordMainInfoViewModel
+        {
+            Name = "123",
+            Parent = Record,
+            Type = RecordType.Group,
+            Id = new Random().Next(),
+            Children = new(),
+        };
+        Dispatcher.Dispatch(new AppendDevCourseRecordAction(Record));
+    }
+}

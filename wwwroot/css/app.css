@@ -1,0 +1,289 @@
+﻿@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans&display=swap');
+
+html, body {
+    font-family: 'IBM Plex Sans', sans-serif;
+}
+
+a{
+    color: inherit;
+}
+
+    a:hover {
+        text-decoration: none;
+        color: inherit;
+    }
+
+::-webkit-scrollbar {
+    width: 14px;
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: 6px;
+    background-color: #B1B1B1 !important;
+}
+
+::-webkit-scrollbar-track {
+    background: inherit;
+}
+
+
+
+/*.valid.modified:not([type=checkbox]) {
+    outline: 1px solid #26b050;
+}
+
+.invalid {
+    outline: 1px solid red;
+}
+*/
+.validation-message {
+    color: red;
+}
+
+#blazor-error-ui {
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+    #blazor-error-ui .dismiss {
+        cursor: pointer;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.5rem;
+    }
+
+/* Loader*/
+
+.lds-roller {
+    position: absolute;
+    left: 50%;
+    top: 50%; -webkit-transform: translate(-50%, -50%);
+  -moz-transform: translate(-50%, -50%);
+  -ms-transform: translate(-50%, -50%);
+  -o-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+    width: 80px;
+    height: 80px;
+}
+
+    .lds-roller div {
+        animation: lds-roller 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        transform-origin: 40px 40px;
+    }
+
+        .lds-roller div:after {
+            content: " ";
+            display: block;
+            position: absolute;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #363636;
+            margin: -4px 0 0 -4px;
+        }
+
+        .lds-roller div:nth-child(1) {
+            animation-delay: -0.036s;
+        }
+
+            .lds-roller div:nth-child(1):after {
+                top: 63px;
+                left: 63px;
+            }
+
+        .lds-roller div:nth-child(2) {
+            animation-delay: -0.072s;
+        }
+
+            .lds-roller div:nth-child(2):after {
+                top: 68px;
+                left: 56px;
+            }
+
+        .lds-roller div:nth-child(3) {
+            animation-delay: -0.108s;
+        }
+
+            .lds-roller div:nth-child(3):after {
+                top: 71px;
+                left: 48px;
+            }
+
+        .lds-roller div:nth-child(4) {
+            animation-delay: -0.144s;
+        }
+
+            .lds-roller div:nth-child(4):after {
+                top: 72px;
+                left: 40px;
+            }
+
+        .lds-roller div:nth-child(5) {
+            animation-delay: -0.18s;
+        }
+
+            .lds-roller div:nth-child(5):after {
+                top: 71px;
+                left: 32px;
+            }
+
+        .lds-roller div:nth-child(6) {
+            animation-delay: -0.216s;
+        }
+
+            .lds-roller div:nth-child(6):after {
+                top: 68px;
+                left: 24px;
+            }
+
+        .lds-roller div:nth-child(7) {
+            animation-delay: -0.252s;
+        }
+
+            .lds-roller div:nth-child(7):after {
+                top: 63px;
+                left: 17px;
+            }
+
+        .lds-roller div:nth-child(8) {
+            animation-delay: -0.288s;
+        }
+
+            .lds-roller div:nth-child(8):after {
+                top: 56px;
+                left: 12px;
+            }
+
+@keyframes lds-roller {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/*Auth Modal*/
+
+.modal-login {
+    min-width: 350px;
+}
+
+    .modal-login .modal-content {
+        padding: 20px;
+        border-radius: 5px;
+        border: none;
+    }
+
+    .modal-login .modal-header {
+        border-bottom: none;
+        position: relative;
+        justify-content: center;
+    }
+
+    .modal-login .close {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+    }
+
+    .modal-login h4 {
+        color: #636363;
+        text-align: center;
+        font-size: 26px;
+        margin-top: 0;
+    }
+
+    .modal-login .modal-content {
+        color: #999;
+        border-radius: 1px;
+        margin-bottom: 15px;
+        background: #fff;
+        border: 1px solid #f3f3f3;
+        box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
+        padding: 25px;
+    }
+
+    .modal-login .form-group {
+        margin-bottom: 20px;
+    }
+
+    .modal-login label {
+        font-weight: 500;
+        font-size: 16px;
+    }
+
+    .modal-login .form-control {
+        min-height: 38px;
+        padding-left: 5px;
+        box-shadow: none !important;
+        border-width: 0 0 1px 0;
+        border-radius: 0;
+    }
+
+        .modal-login .form-control:focus {
+            border-color: #ccc;
+        }
+
+    .modal-login .input-group-addon {
+        display: flex;
+        -webkit-align-items: center;
+        align-items: center;
+        max-width: 42px;
+        text-align: center;
+        background: none;
+        border-width: 0 0 1px 0;
+        margin-right: 5px;
+        border-radius: 0;
+    }
+
+    .modal-login .btn {
+        font-size: 16px;
+        font-weight: bold;
+        background: #19aa8d;
+        border-radius: 3px;
+        border: none;
+        min-width: 140px;
+        outline: none !important;
+    }
+
+        .modal-login .btn:hover, .modal-login .btn:focus {
+            background: #179b81;
+        }
+
+    .modal-login .hint-text {
+        text-align: center;
+        padding-top: 5px;
+        font-size: 13px;
+    }
+
+    .modal-login .modal-footer {
+        color: #999;
+        border-color: #dee4e7;
+        text-align: center;
+        margin: 0 -25px -25px;
+        font-size: 13px;
+        justify-content: center;
+    }
+
+    .modal-login span.link {
+        color: #19aa8d;
+        text-decoration: none;
+    }
+
+        .modal-login span.link:hover {
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+    .modal-login .fa {
+        font-size: 21px;
+    }

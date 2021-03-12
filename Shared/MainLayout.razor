@@ -1,0 +1,45 @@
+﻿@inherits LayoutComponentBase
+
+<CascadingValue Value="themes.Dark" Name="Theme">
+    <div>
+        <Header />
+        <LeftSideBar IsToggled="true"></LeftSideBar>
+        <Main>
+            @Body
+        </Main>
+    </div>
+</CascadingValue>
+
+<style>
+    body{
+        background: @themes.Dark.BackgroundOptions.Body;
+        overflow-x: hidden;
+    }
+</style>
+
+@code{
+
+    Themes themes = new Themes
+    {
+        Dark = new Theme
+        {
+            SideBarOptions = new SideBarOptions
+            {
+                Color = "#818896",
+                BackgroundColor = "#212529",
+                ActiveColor = "#B8BFCE",
+                ActiveBackgroundColor = "#373A3E",
+                HoverColor = "#B8BFCE",
+                HoverBackgroundColor = "#949494"
+            },
+            BackgroundOptions = new BackgroundOptions
+            {
+                Body = "#FDFDFD"
+            },
+            ColorOptions = new ColorOptions
+            {
+                Body = "#444444"
+            }
+        }
+    };
+}

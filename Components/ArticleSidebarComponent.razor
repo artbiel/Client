@@ -1,0 +1,68 @@
+﻿@inherits FluxorComponent
+@inject IState<ArticleState> ArticleState
+@inject IState<CourseState> CourseState
+@inject IState<CourseDevState> CourseDevState
+@inject IState<DevModeState> DevModeState
+@inject IDispatcher Dispatcher
+
+<RigthSideBarComponent Width="300px">
+    @if (!ArticleState.Value.IsLoading)
+    {
+        <div class="article-nav">
+            <ArticleSidebarButtonComponent IsActive="CurrentTab == ArticleSidebarTab.CourseStructure" 
+                                          OnTabChanged="() => ChangeTab(ArticleSidebarTab.CourseStructure)">
+                <i class="fa fa-folder"></i><span>Structure</span>
+            </ArticleSidebarButtonComponent>
+            <ArticleSidebarButtonComponent  IsActive="CurrentTab == ArticleSidebarTab.HistoryBranch"
+                                          OnTabChanged="() => ChangeTab(ArticleSidebarTab.HistoryBranch)">
+                <i class="fa fa-code-fork"></i><span>History</span>
+            </ArticleSidebarButtonComponent>
+
+        </div>
+        <div class="article-sidebar-body">
+            @switch (CurrentTab)
+            {
+                case ArticleSidebarTab.CourseStructure:
+                    <div style="padding: 10px;">
+                        <TreeViewComponent Records="DevModeState.Value.Enabled ?  CourseDevState.Value.Records 
+                                                    : CourseState.Value.CurrentCourse.Records"
+                                           ActiveRecords="ArticleState.Value.ActiveRecords" FontSize="17px" />
+                    </div>
+                    break;
+                case ArticleSidebarTab.HistoryBranch:
+                    <HistoryBranchComponent Commits="ArticleState.Value.CurrentArticle.Commits.Reverse<CommitViewModel>().ToList()"
+                                            ActiveCommit="ArticleState.Value.CurrentCommit" />
+                    break;
+            }
+        </div>
+    }
+</RigthSideBarComponent>
+
+<style>
+    .article-nav {
+        padding: 0;
+        margin: 0;
+        display: flex;
+        width: 100%;
+        height: 40px;
+    }
+
+        .article-nav button:not(:last-child) {
+            border: none;
+            border-right: 1px solid silver;
+        }
+
+    .article-sidebar-body {
+        height: calc(100vh - 90px);
+        overflow-y: auto;
+    }
+</style>
+
+@code{
+    private ArticleSidebarTab CurrentTab = ArticleSidebarTab.CourseStructure;
+
+    private void ChangeTab(ArticleSidebarTab tab)
+    {
+        CurrentTab = tab;
+    }
+}

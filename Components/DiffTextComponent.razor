@@ -1,0 +1,59 @@
+﻿@for (int i_new = 0, i_old = 0, block = 0; i_new < PiecesNew.Length || i_old < PiecesOld.Length; i_old++)
+{
+    if (block < DiffBlocks.Count && DiffBlocks[block].InsertStartB == i_new && DiffBlocks[block].InsertCountB > 0)
+    {
+        int ins_i = 0;
+        @for (; ins_i < DiffBlocks[block].InsertCountB; ins_i++)
+        {
+            <span style="color: green">@PiecesNew[i_new + ins_i]</span>
+        }
+        if (block < DiffBlocks.Count && DiffBlocks[block].DeleteStartA == i_old &&
+               DiffBlocks[block].DeleteCountA > 0)
+        {
+            int del_i = 0;
+            <span>
+                (<span class="annotation">instead of</span>
+                @for (; del_i < DiffBlocks[block].DeleteCountA; del_i++)
+                {
+                    <span style="color: orange">@PiecesOld[i_old + del_i]</span>
+                }
+                )
+            </span>
+            i_old += del_i - 1;
+        }
+        i_new += ins_i;
+        block++;
+    }
+    else if (block < DiffBlocks.Count && DiffBlocks[block].DeleteStartA == i_old && DiffBlocks[block].DeleteCountA > 0)
+    {
+        int del_i = 0;
+        <span>
+            (
+            @for (; del_i < DiffBlocks[block].DeleteCountA; del_i++)
+            {
+                <span style="color: red">@PiecesOld[i_old + del_i]</span>
+            }
+            )
+        </span>
+        i_old += del_i - 1;
+        block++;
+    }
+    else if (i_new < PiecesNew.Length)
+    {
+        @PiecesNew[i_new];
+        i_new++;
+    }
+    Console.WriteLine("Old: " + i_old);
+    Console.WriteLine("New: " + i_new);
+}
+
+@code {
+    [Parameter]
+    public IList<DiffPlex.Model.DiffBlock> DiffBlocks { get; set; }
+
+    [Parameter]
+    public string[] PiecesOld { get; set; }
+
+    [Parameter]
+    public string[] PiecesNew { get; set; }
+}

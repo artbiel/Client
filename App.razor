@@ -1,0 +1,130 @@
+<Fluxor.Blazor.Web.StoreInitializer />
+<RadzenDialog />
+
+<CascadingAuthenticationState>
+    <CascadingValue Value="themes.Dark" Name="Theme">
+        <Router AppAssembly="typeof(Program).Assembly">
+            <Found Context="routeData">
+                <RouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)" />
+            </Found>
+            <NotFound>
+               <MainLayout></MainLayout>
+            </NotFound>
+        </Router>
+       </CascadingValue>
+</CascadingAuthenticationState>
+
+    @code{ 
+
+        Themes themes = new Themes
+        {
+            Dark = new Theme
+            {
+                SideBarOptions = new SideBarOptions
+                {
+                    Color = "#818896",
+                    BackgroundColor = "rgb(33, 37, 41)",
+                    ActiveColor = "#030303",
+                    ActiveBackgroundColor = "#707070",
+                    HoverColor = "#030303",
+                    HoverBackgroundColor = "#949494"
+                },
+                BackgroundOptions = new BackgroundOptions
+                {
+                    Body = "#ffffff",
+                    Modal = "#363636"
+                },
+                ColorOptions = new ColorOptions
+                {
+                    Body= "#444444",
+                    Modal = "#DFDFDF"
+                }
+            }
+        };
+
+        //private Theme currentTheme = themes.Dark;
+
+        //public void OnThemeChanged(ThemeType type)
+        //{
+        //    currentTheme = type switch
+        //    {
+        //        ThemeType.Dark => themes.Dark,
+        //        ThemeType.Light => themes.Light,
+        //        _ => themes.Dark
+        //    };
+        //}
+
+
+        //private Theme theme = new Theme
+        //{
+        //    IsRounded = true,
+        //    BarOptions = new ThemeBarOptions()
+        //    {
+        //        HorizontalHeight = "64px",
+        //        LightColors = new ThemeBarColorOptions
+        //        {
+        //            BackgroundColor = "#DFDFDF",
+        //            Color = "#030303"
+        //        },
+        //        DarkColors = new ThemeBarColorOptions
+        //        {
+        //            Color = "#DFDFDF",
+        //            BackgroundColor = "#363636",
+        //            ItemColorOptions = new ThemeBarItemColorOptions
+        //            {
+        //                ActiveColor = "#030303",
+        //                ActiveBackgroundColor = "#707070",
+        //                HoverColor = "#030303",
+        //                HoverBackgroundColor = "#949494"
+        //            }
+        //        }
+        //    },
+        //    BreakpointOptions = new ThemeBreakpointOptions
+        //    {
+        //    },
+        //    //ColorOptions = new ThemeColorOptions
+        //    //{
+        //    //    Primary = "#030303",
+        //    //    //Secondary = "#A65529",
+        //    //    //Success = "#23C02E",
+        //    //    //Info = "#9BD8FE",
+        //    //    //Warning = "#F8B86C",
+        //    //    //Danger = "#F95741",
+        //    //    //Light = "#F0F0F0",
+        //    //    //Dark = "#535353",
+        //    //},
+        //    BackgroundOptions = new ThemeBackgroundOptions
+        //    {
+        //        Primary = "#363636",
+        //        Body = "#252526",
+        //        Dark = "#252526",
+
+
+        //    },
+        //    TextColorOptions = new ThemeTextColorOptions
+        //    {
+        //        Body = "#DCDABD"
+        //    },
+        //    //ButtonOptions = new ThemeButtonOptions { },
+        //    //DropdownOptions = new ThemeDropdownOptions { },
+        //    InputOptions = new ThemeInputOptions
+        //    {
+        //        CheckColor = "#0288D1",
+        //    },
+        //    //CardOptions = new ThemeCardOptions { },
+        //    //ModalOptions = new ThemeModalOptions { },
+        //    //TabsOptions = new ThemeTabsOptions { },
+        //    //ProgressOptions = new ThemeProgressOptions { },
+        //    //AlertOptions = new ThemeAlertOptions { },
+        //    //BreadcrumbOptions = new ThemeBreadcrumbOptions { },
+        //    //BadgeOptions = new ThemeBadgeOptions { },
+        //    //PaginationOptions = new ThemePaginationOptions { },
+        //    TooltipOptions = new ThemeTooltipOptions
+        //    {
+        //        BackgroundColor = "#22c8ce",
+        //        BackgroundOpacity = .7f,
+        //        Color = "#ff0000",
+        //    },
+        //    IsGradient = true
+        //};
+    }

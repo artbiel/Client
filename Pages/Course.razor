@@ -1,0 +1,104 @@
+﻿@page "/courses/{id:int}"
+@inherits FluxorComponent
+@inject IDispatcher Dispatcher
+@inject IState<CourseState> CourseState
+
+@if (CourseState.Value.IsLoading)
+{
+    <LoadingComponent />
+}
+else
+{
+    <div class="course-wrapper">
+        <div class="course-header">
+            <img src="@CourseState.Value.CurrentCourse.ImgSrc" />
+            <div class="main-info">
+                <h2>@CourseState.Value.CurrentCourse.Name</h2>
+                <div><span style="font-weight: bolder">Difficulty:</span> @CourseState.Value.CurrentCourse.Difficulty</div>
+                <RatingComponent Rating="2.5" Total="228" />
+                <div class="badges">
+                    <span class="badge badge-light">Light</span>
+                    <span class="badge badge-light">Light</span>
+                    <span class="badge badge-light">Light</span>
+                    <span class="badge badge-light">Light</span>
+                    <span class="badge badge-light">Light</span>
+                    <span class="badge badge-light">Light</span>
+                    <span class="badge badge-light">Light</span>
+                    <span class="badge badge-light">Light</span>
+                </div>
+            </div>
+        </div>
+        <div class="course-body-wrapper">
+            <div class="course-description-wrapper ">
+                @CourseState.Value.CurrentCourse.Description
+            </div>
+                <h3 style="font-weight: bolder">Course structure</h3>
+                <TreeViewComponent Records="CourseState.Value.CurrentCourse.Records" 
+                                   ActiveRecords="CourseState.Value.CurrentCourse.Records?.Where(r => r.Type == RecordType.Group).ToList()"
+                                   FontSize="19px" />
+        </div>
+    </div>
+}
+
+<style>
+    .course-wrapper{
+        background-color: @Theme.BackgroundOptions.Body;
+        width: 100%;
+        transition: width 0.5s ease;
+        z-index: 200;
+        min-width: 200px;
+    }
+
+    .course-header img {
+        height: 150px;
+        width: 150px;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+    .course-header .main-info{
+        padding: 10px;
+    }
+
+        .course-header .main-info > div{
+            padding: 2px 5px;
+        }
+
+        .course-header .main-info .badges > span {
+            padding: 5px;
+        }
+
+    .course-body-wrapper {
+        margin: 20px 10px;
+    }
+
+    .course-description-wrapper {
+        padding: 1.25rem;
+        margin-top: 1.25rem;
+        margin-bottom: 1.25rem;
+        border: 1px solid #eee;
+        border-left-width: .25rem;
+        border-radius: .25rem;
+        border-left-color: @Theme.SideBarOptions.Color
+    }
+
+</style>
+
+@code{
+
+    [CascadingParameter(Name = "Theme")]
+    public Theme Theme { get; set; }
+
+
+
+    [Parameter]
+    public int Id { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Dispatcher.Dispatch(new FetchCourseAction(Id));
+    }
+}
+
+

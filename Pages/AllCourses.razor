@@ -1,0 +1,157 @@
+﻿@page "/courses"
+
+<h1>Все курсы</h1>
+
+<div class="row" style="margin: 10px 0;">
+    <div class="col-4" style="padding: 0">
+        <RadzenAutoComplete Placeholder="Search..."></RadzenAutoComplete>
+    </div>
+</div>
+
+@foreach (var item in courses)
+{
+    <hr />
+    <NavLink href=@("/courses/" + item.Id)>
+        <div class="course-item">
+            <div class="course-head">
+                <img src="@item.ImgSrc" />
+                <span class="course-title">
+                    @item.Name
+                </span>
+            </div>
+            <div class="course-tail">
+                <span>Difficulty:&nbsp; @item.Name</span>
+            </div>
+        </div>
+    </NavLink>
+}
+
+<style>
+
+    a:hover{
+        text-decoration: none;
+    }
+
+    .course-item {
+        padding: 10px;
+        border-radius: 0px;
+        display: flex;
+        -ms-flex-wrap: wrap;
+        -webkit-flex-wrap: wrap;
+        flex-wrap: wrap;
+        -webkit-align-items: center;
+        align-items: center;
+        justify-content: space-between;
+        transition: 0.2s ease;
+    }
+
+        .course-item:hover {
+            border: none;
+            border-radius: 5px;
+            background-color: #eaeaea;
+        }
+
+        .course-item img {
+            height: 60px;
+            width: 60px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .course-item .course-head, .course-tail{
+            display: flex;
+            align-items: center;
+            justify-content: left;
+        }
+
+        .course-item .course-head .course-title{
+            margin-left: 10px;
+            font-size: 25px;
+            color: @Theme.ColorOptions.Body;
+        }
+
+    hr {
+        margin: 1px 0px;
+    }
+</style>
+
+@code {
+
+    [CascadingParameter(Name = "Theme")]
+    public Theme Theme { get; set; }
+
+    public class Course
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string ShortDescription { get; set; }
+        public string ImgSrc { get; set; }
+    }
+
+    static List<CourseMainInfoViewModel> courses = new List<CourseMainInfoViewModel>
+{
+        new CourseMainInfoViewModel
+        {
+            Id = 1,
+            Name = "Основы C#",
+            ShortDescription = "В данном курсе вы ознакомитесь с основами языка C# и платформы .NET",
+            ImgSrc = "https://www.secretorange.co.uk/media/TagImage/c-sharp.png"
+        },
+        new CourseMainInfoViewModel
+        {
+            Id = 1,
+            Name = "Основы C#",
+            ShortDescription = "В данном курсе вы ознакомитесь с основами языка C# и платформы .NET",
+            ImgSrc = "https://www.secretorange.co.uk/media/TagImage/c-sharp.png"
+        },
+        new CourseMainInfoViewModel
+        {
+            Id = 1,
+            Name = "Основы C#",
+            ShortDescription = "В данном курсе вы ознакомитесь с основами языка C# и платформы .NET",
+            ImgSrc = "https://www.secretorange.co.uk/media/TagImage/c-sharp.png"
+
+        },
+        new CourseMainInfoViewModel
+        {
+            Id = 1,
+            Name = "Основы C#",
+            ShortDescription = "В данном курсе вы ознакомитесь с основами языка C# и платформы .NET",
+            ImgSrc = "https://www.secretorange.co.uk/media/TagImage/c-sharp.png"
+        },
+        new CourseMainInfoViewModel
+        {
+            Id = 1,
+            Name = "Основы C#",
+            ShortDescription = "В данном курсе вы ознакомитесь с основами языка C# и платформы .NET",
+            ImgSrc = "https://www.secretorange.co.uk/media/TagImage/c-sharp.png"
+        },
+        new CourseMainInfoViewModel
+        {
+            Id = 1,
+            Name = "Основы C#",
+            ShortDescription = "В данном курсе вы ознакомитесь с основами языка C# и платформы .NET",
+            ImgSrc = "https://www.secretorange.co.uk/media/TagImage/c-sharp.png"
+        },
+        new CourseMainInfoViewModel
+        {
+            Id = 1,
+            Name = "Основы C#",
+            ShortDescription = "В данном курсе вы ознакомитесь с основами языка C# и платформы .NET",
+            ImgSrc = "https://www.secretorange.co.uk/media/TagImage/c-sharp.png"
+        },
+    };
+
+    public class MySelectModel
+    {
+        public int MyValueField { get; set; }
+        public string MyTextField { get; set; }
+    }
+
+    object selectedSearchValue { get; set; }
+
+    void MySearchHandler(object newValue)
+    {
+        selectedSearchValue = newValue;
+    }
+}

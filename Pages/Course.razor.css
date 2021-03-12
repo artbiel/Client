@@ -1,0 +1,22 @@
+﻿
+.course-header {
+    width: 100%;
+    display: flex;
+    -ms-flex-direction: row;
+    -webkit-flex-direction: row;
+    flex-direction: row;
+    -webkit-align-items: start;
+    align-items: start;
+}
+
+@media screen and (max-width: 700px) {
+    .course-header {
+        flex-direction: column;
+        -webkit-align-items: center;
+        align-items: center;
+    }
+
+        .course-header .main-info h2 {
+            text-align: center;
+        }
+}

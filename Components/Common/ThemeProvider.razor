@@ -1,0 +1,26 @@
+﻿@inherits LayoutComponentBase
+
+<CascadingValue Value="currentTheme" Name="Theme">
+        @Body
+</CascadingValue>
+
+
+@code {
+    [Parameter]
+    public Themes Themes { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    private Theme currentTheme = new Theme();
+
+    public void OnThemeChanged(ThemeType type)
+    {
+        currentTheme = type switch
+        {
+            ThemeType.Dark => Themes.Dark,
+            ThemeType.Light => Themes.Light,
+            _ => Themes.Dark
+        };
+    }
+}

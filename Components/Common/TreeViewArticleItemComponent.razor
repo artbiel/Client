@@ -1,0 +1,17 @@
+﻿@inject IState<CourseState> CourseState
+@inherits FluxorComponent
+
+<div class=@("node-content" + (ActiveRecords.Contains(Record) ? " active" : ""))>
+    <NavLink class="node-content-title" href=@($"/courses/{CourseState.Value.CurrentCourse.Id}/{Record.TargetId}")>
+        <i class="fa fa-file-text-o"></i>
+        <span>@Record.Name</span>
+    </NavLink>
+</div>
+
+    @code {
+        [Parameter]
+        public RecordMainInfoViewModel Record { get; set; }
+
+        [Parameter]
+        public List<RecordMainInfoViewModel> ActiveRecords { get; set; }
+    }

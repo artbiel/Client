@@ -1,0 +1,195 @@
+﻿@page "/test2"
+
+<EditForm Model="EditVal">
+    <InputTextArea @bind-Value="@EditVal.Old"></InputTextArea>
+    <InputTextArea @bind-Value="@EditVal.New"></InputTextArea>
+</EditForm>
+
+<button @onclick="AddCommit">Diff</button>
+
+<div>
+    @if (DiffResult != null)
+    {
+        Console.WriteLine("Diff " + DiffResult.DiffBlocks.Count);
+        foreach (var item in DiffResult.DiffBlocks)
+        {
+            Console.WriteLine("Insert: " + item.InsertStartB + " " + item.InsertCountB);
+            Console.WriteLine("Delete: " + item.DeleteStartA + " " + item.DeleteCountA);
+        }
+        Console.WriteLine("Old " + DiffResult.PiecesOld.Length);
+        Console.WriteLine("New " + DiffResult.PiecesNew.Length);
+
+        for (int i_new = 0, i_old = 0, block = 0; i_new < DiffResult.PiecesNew.Length || i_old < CurrentWords.Length; i_old++)
+        {
+            if (block < DiffResult.DiffBlocks.Count && DiffResult.DiffBlocks[block].InsertStartB == i_new &&
+                    DiffResult.DiffBlocks[block].InsertCountB > 0)
+            {
+                int ins_i = 0;
+                @for (; ins_i < DiffResult.DiffBlocks[block].InsertCountB; ins_i++)
+                {
+                    <span style="color: green">@DiffResult.PiecesNew[i_new + ins_i]</span>
+                }
+                if (block < DiffResult.DiffBlocks.Count && DiffResult.DiffBlocks[block].DeleteStartA == i_old &&
+                        DiffResult.DiffBlocks[block].DeleteCountA > 0)
+                {
+                    int del_i = 0;
+                    <span>
+                        (<span class="annotation">instead of</span>
+                        @for (; del_i < DiffResult.DiffBlocks[block].DeleteCountA; del_i++)
+                        {
+                            <span style="color: orange">@CurrentWords[i_old + del_i]</span>
+                        }
+                        )
+                    </span>
+                    i_old += del_i - 1;
+                }
+                i_new += ins_i;
+                block++;
+            }
+            else if (block < DiffResult.DiffBlocks.Count && DiffResult.DiffBlocks[block].DeleteStartA == i_old &&
+                DiffResult.DiffBlocks[block].DeleteCountA > 0)
+            {
+                int del_i = 0;
+                <span>
+                    (
+                    @for (; del_i < DiffResult.DiffBlocks[block].DeleteCountA; del_i++)
+                    {
+                        <span style="color: red">@CurrentWords[i_old + del_i]</span>
+                    }
+                    )
+                </span>
+                i_old += del_i - 1;
+                block++;
+            }
+            else if (i_new < DiffResult.PiecesNew.Length)
+            {
+                @DiffResult.PiecesNew[i_new];
+                i_new++;
+            }
+            Console.WriteLine("Old: " + i_old);
+            Console.WriteLine("New: " + i_new);
+        }
+    }
+    @*@if (DiffModel != null)
+        {
+            @foreach (var line in DiffModel.Lines)
+            {
+                @if (!string.IsNullOrEmpty(line.Text))
+                {
+                    string spaceValue = "\u00B7";
+                    if (line.Type == ChangeType.Deleted || line.Type == ChangeType.Inserted || line.Type == ChangeType.Unchanged)
+                    {
+                        <p>@line.Text : @line.Type.ToString()</p>
+                    }
+                    else if (line.Type == ChangeType.Modified)
+                    {
+                        foreach (var character in line.SubPieces)
+                        {
+                            if (character.Type == ChangeType.Imaginary) { continue; }
+
+                            <span class="@character.Type.ToString()Character piece">123 @character.Text.Replace(" ", spaceValue.ToString())</span>
+                        }
+                    }
+                }
+            }
+        }*@
+</div>
+
+<div>
+    @foreach (var item in commits)
+    {
+        <div>
+            <button @onclick="() => ShowCommit(item.Id)">@item.Id</button>
+        </div>
+    }
+</div>
+
+<div>
+    @foreach (var word in CurrentWords)
+    {
+        @word;
+    }
+</div>
+
+<style>
+    .annotation {
+        font-size: 60%;
+    }
+</style>
+
+@code {
+    class Edit
+    {
+        public string Old { get; set; }
+        public string New { get; set; }
+    }
+
+    Edit EditVal { get; set; }
+
+    string _old = "<div class=\"container\">" +
+    "< div class=\"row\"> " +
+" <div class=\"col-lg-12\">";
+    string _new = "<div class=\"container-wrapper\">" +
+   "< div class=\"row\"> " +
+" <div class=\"col-lg-8\">";
+
+    //DiffPaneModel DiffModel { get; set; }
+    DiffPlex.Model.DiffResult DiffResult { get; set; }
+
+    void AddCommit()
+    {
+        Console.WriteLine("Old : " + EditVal.Old);
+        Console.WriteLine("New : " + EditVal.New);
+
+        DiffResult = DiffPlex.Differ.Instance.CreateWordDiffs(string.Join("", CurrentWords), EditVal.New, false, false, new[] { ' ' });
+        var diffWords = new List<string>();
+        foreach (var diff in DiffResult.DiffBlocks)
+        {
+            if (diff.InsertCountB != 0)
+            {
+                diffWords.AddRange(DiffResult.PiecesNew.Skip(diff.InsertStartB).Take(diff.InsertCountB));
+            }
+        }
+        Console.WriteLine("Diffwords: " + string.Join(" ", diffWords));
+        int id = new Random().Next();
+        commits = commits.Append(new()
+        {
+            Id = id,
+            DiffBlocks = DiffResult.DiffBlocks,
+            DiffWords = diffWords.ToArray()
+        }).ToList();
+        ShowCommit(id);
+        //DiffModel = DiffPlex.DiffBuilder.InlineDiffBuilder.Diff(EditVal.Old, EditVal.New);
+    }
+
+    void ShowCommit(int id)
+    {
+        List<string> current = new List<string>();
+        for (int i = 0; i < commits.Count && commits[i].Id != id; i++)
+        {
+            int blockSeek = 0;
+            foreach (var block in commits[i].DiffBlocks)
+            {
+                if (block.DeleteCountA > 0)
+                {
+                    current.RemoveRange(block.DeleteStartA, block.DeleteCountA);
+                }
+                if (block.InsertCountB > 0)
+                {
+                    current.AddRange(commits[i].DiffWords.Skip(blockSeek).Take(block.InsertCountB));
+                }
+            }
+        }
+    }
+
+    string[] CurrentWords = new string[0];
+
+    List<CommitViewModel>
+    commits = new List<CommitViewModel>
+        ();
+
+    protected override void OnInitialized()
+    {
+        EditVal = new Edit() { Old = "qwe qwe qwe 43 5 42", New = "qwe qwe sda 43 42" };
+    }
+}
