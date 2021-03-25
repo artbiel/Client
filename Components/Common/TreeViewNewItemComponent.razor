@@ -1,0 +1,55 @@
+﻿<div class="node-content editor-wrapper">
+    <form>
+        @if (Value.Type == RecordType.Group)
+        {
+            <button @onclick="() => Value.Type = RecordType.Article">
+                <i class="fa fa-chevron-right" style="transform: rotate(90deg); margin: 0"></i>
+            </button>
+        }
+        else
+        {
+            <button @onclick="() => Value.Type = RecordType.Group">
+                <i class="fa fa-file-text-o" style="margin: 0"></i>
+            </button>
+        }
+        <input autofocus class="edit-title" @bind-value="Value.Name" @bind-value:event="oninput" @onkeypress="EnterKeyDownHandler"/>
+    </form>
+    <button @onclick="Submit">
+        <RadzenIcon Icon="done" Style="font-size: 25px;"/>
+    </button>
+    <button @onclick="OnAbort">
+        <RadzenIcon Icon="close" Style="font-size: 25px;" />
+    </button>
+</div>
+
+@code{
+    private RecordMainInfoViewModel Value;
+
+    [Parameter]
+    public EventCallback OnAbort { get; set; }
+
+    [Parameter]
+    public EventCallback<RecordMainInfoViewModel> OnSubmit { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        Value = new()
+        {
+            Id = new Random().Next(),
+            Name = "",
+            Type = RecordType.Group
+        };
+        base.OnParametersSet();
+    }
+
+    private async Task Submit()
+    {
+        await OnSubmit.InvokeAsync(Value);
+    }
+
+    private async Task EnterKeyDownHandler(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter")
+            await Submit();
+    }
+}

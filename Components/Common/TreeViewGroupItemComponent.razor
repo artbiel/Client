@@ -1,25 +1,53 @@
-﻿@inherits FluxorComponent
-@inject IState<DevModeState> DevModeState
+﻿@inject IState<DevModeState> DevModeState
+@inject IState<CourseDevState> CourseDevState
+@inject IDispatcher Dispatcher
 
-<div class="node-content group">
-        <div class="node-content-title" @onclick="ToggleDisplay">
-            <i class="fa fa-chevron-right" style=@(Display ? "transform: rotate(90deg); margin-right: 10px;" : "")></i>
-            <span>
-                @(DevModeState.Value.Enabled ? $"<{Record.Name}>" : Record.Name)
-            </span>
-        </div>
-        <TreeViewItemEditComponent Record="Record"/>
-</div>
-@if (Record.Children.Count > 0 && Display)
+@if (isEditing)
 {
-    <div class="node-child">
+    <TreeViewItemEditComponent Value="@Record.Name" OnSubmit="EditRecord" OnAbort="() => isEditing = false" />
+}
+else
+{
+    <DropTarget T="RecordMainInfoViewModel" Drop="(record) => Dispatcher.Dispatch(new MoveDevCourseRecordAction(record, Record, null))">
+        <Draggable Data="Record">
+            <div class="node-content group">
+                <div class="node-content-title" @onclick="ToggleDisplay">
+                    <i class="fa fa-chevron-right" style=@(Display ? "transform: rotate(90deg); margin-right: 10px;" : "")></i>
+                    <span> @(DevModeState.Value.Enabled ? $"<{Record.Name}>" : Record.Name)</span>
+                </div>
+                @if (DevModeState.Value.Enabled)
+                {
+                    <TreeViewItemMenuComponent OnAdd="() => isAdding = true" OnEdit="() => isEditing = true"
+                                               OnDelete="() => Dispatcher.Dispatch(new RemoveDevCourseRecordAction(Record))"
+                                               WithEditing="Record.Type != RecordType.Root"
+                                               WithDeleting="Record.Type !=RecordType.Root" />
+                }
+            </div>
+        </Draggable>
+    </DropTarget>
+}
+<div class="node-child">
+    @if (isAdding)
+    {
+        <TreeViewNewItemComponent OnSubmit="@AddRecord" OnAbort="() => isAdding = false" />
+    }
+    @if (Record.Children.Count > 0 && Display)
+    {
+
         @foreach (var record in Record.Children)
         {
-            <TreeViewItemComponent ActiveRecords="ActiveRecords" Record="record" />
+            <TreeViewItemComponent Record="record" ActiveRecords="ActiveRecords" />
         }
-    </div>
+    }
+</div>
+@if (DevModeState.Value.Enabled && Record.Type == RecordType.Group)
+{
+    <DropTarget T="RecordMainInfoViewModel" Drop="(record) => Dispatcher.Dispatch(new MoveDevCourseRecordAction(record, null, Record))">
+        <div class="node-content node-content-title">
+            <span style="margin-left: 8px">@($"</{Record.Name}>")</span>
+        </div>
+    </DropTarget>
 }
-
 
 @code {
     [Parameter]
@@ -29,6 +57,8 @@
     public List<RecordMainInfoViewModel> ActiveRecords { get; set; }
 
     private bool Display = false;
+    private bool isAdding = false;
+    private bool isEditing = false;
 
     private void ToggleDisplay()
     {
@@ -36,8 +66,22 @@
         StateHasChanged();
     }
 
+    private void AddRecord(RecordMainInfoViewModel record)
+    {
+        Console.WriteLine(record.Name);
+        Dispatcher.Dispatch(new AddDevCourseRecordAction(record, Record));
+        isAdding = false;
+    }
+
+    private void EditRecord(string Name)
+    {
+        Record.Name = Name;
+        Dispatcher.Dispatch(new EditDevCourseRecordAction(Record));
+        isEditing = false;
+    }
+
     protected override void OnParametersSet()
     {
-        Display = ActiveRecords.Contains(Record) || Display;
+        Display = ActiveRecords.Any(r => r.Id == Record.Id) || Display;
     }
 }

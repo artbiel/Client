@@ -11,7 +11,6 @@ namespace Client.Models
         public int TargetId { get; set; }
         public RecordType Type { get; set; }
         public string Name { get; set; }
-        public RecordMainInfoViewModel Parent { get; set; }
         public List<RecordMainInfoViewModel> Children { get; set; }
 
         public object Clone()
@@ -26,6 +25,7 @@ namespace Client.Models
     public enum RecordType
     {
         Article,
-        Group
+        Group,
+        Root
     }
 }

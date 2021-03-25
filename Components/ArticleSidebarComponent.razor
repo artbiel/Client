@@ -9,12 +9,12 @@
     @if (!ArticleState.Value.IsLoading)
     {
         <div class="article-nav">
-            <ArticleSidebarButtonComponent IsActive="CurrentTab == ArticleSidebarTab.CourseStructure" 
-                                          OnTabChanged="() => ChangeTab(ArticleSidebarTab.CourseStructure)">
+            <ArticleSidebarButtonComponent IsActive="CurrentTab == ArticleSidebarTab.CourseStructure"
+                                           OnTabChanged="() => ChangeTab(ArticleSidebarTab.CourseStructure)">
                 <i class="fa fa-folder"></i><span>Structure</span>
             </ArticleSidebarButtonComponent>
-            <ArticleSidebarButtonComponent  IsActive="CurrentTab == ArticleSidebarTab.HistoryBranch"
-                                          OnTabChanged="() => ChangeTab(ArticleSidebarTab.HistoryBranch)">
+            <ArticleSidebarButtonComponent IsActive="CurrentTab == ArticleSidebarTab.HistoryBranch"
+                                           OnTabChanged="() => ChangeTab(ArticleSidebarTab.HistoryBranch)">
                 <i class="fa fa-code-fork"></i><span>History</span>
             </ArticleSidebarButtonComponent>
 
@@ -23,11 +23,9 @@
             @switch (CurrentTab)
             {
                 case ArticleSidebarTab.CourseStructure:
-                    <div style="padding: 10px;">
-                        <TreeViewComponent Records="DevModeState.Value.Enabled ?  CourseDevState.Value.Records 
-                                                    : CourseState.Value.CurrentCourse.Records"
-                                           ActiveRecords="ArticleState.Value.ActiveRecords" FontSize="17px" />
-                    </div>
+                    <TreeViewComponent Records="DevModeState.Value.Enabled ? CourseDevState.Value.Records
+                                                        : CourseState.Value.CurrentCourse.Records"
+                                       ActiveRecords="ArticleState.Value.ActiveRecords" FontSize="16px" />
                     break;
                 case ArticleSidebarTab.HistoryBranch:
                     <HistoryBranchComponent Commits="ArticleState.Value.CurrentArticle.Commits.Reverse<CommitViewModel>().ToList()"

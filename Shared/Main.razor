@@ -1,25 +1,9 @@
 ﻿@inherits FluxorComponent
 @inject IState<LeftSidebarState> State
 
-<div class=@("main " + (State.Value.IsDisplay ? "main-with-sidebar" : "main-without-sidebar"))>
+<div class="main" style=@($"background-color:{Theme.BackgroundOptions.Body}")>
     @ChildContent
 </div>
-
-<style>
-    .main {
-        position: absolute;
-        margin: 0;
-        padding: 50px;
-        top: 50px;
-        left: 250px;
-        transition: all 0.5s ease;
-        min-width: 300px;
-        width: @(State.Value.IsDisplay ? "calc(100% - 250px)" : "calc(100% - 70px)");
-        min-height: calc(100vh - 50px);
-        background-color: @Theme.BackgroundOptions.Body;
-        z-index: 100;
-    }
-</style>
 
 @code {
     [CascadingParameter(Name = "Theme")]

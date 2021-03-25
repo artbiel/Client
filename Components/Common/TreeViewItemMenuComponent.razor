@@ -1,0 +1,40 @@
+﻿<div class="add-items-wrapper">
+    @if (WithAdding)
+    {
+    <div class="add-item" title="Добавить">
+        <RadzenIcon Icon="add" Style="margin: 0" @onclick="OnAdd"></RadzenIcon>
+    </div>
+    }
+    @if (WithEditing)
+    {
+    <div class="add-item" title="Редактировать">
+        <RadzenIcon Icon="edit" Style="margin: 0" @onclick="OnEdit"></RadzenIcon>
+    </div>
+    }
+    @if (WithDeleting)
+    {
+    <div class="add-item" title="Удалить">
+        <RadzenIcon Icon="delete" Style="margin: 0" @onclick="OnDelete"></RadzenIcon>
+    </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback OnAdd { get; set; }
+
+    [Parameter]
+    public EventCallback OnEdit { get; set; }
+
+    [Parameter]
+    public EventCallback OnDelete { get; set; }
+
+    [Parameter]
+    public bool WithAdding { get; set; } = true;
+
+    [Parameter]
+    public bool WithEditing { get; set; } = true;
+
+    [Parameter]
+    public bool WithDeleting { get; set; } = true;
+}

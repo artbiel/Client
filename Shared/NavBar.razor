@@ -1,0 +1,126 @@
+﻿@inherits FluxorComponent
+@inject IState<LeftSidebarState> State
+
+<div class=@("sidebar-behind " + (State.Value.IsDisplay ? "showned" : "collapsed"))></div>
+<aside class=@("sidebar " + (State.Value.IsDisplay ? "showned" : "collapsed"))>
+    @*<AuthorizeView>
+        <Authorized>*@
+    <div class="sidebar-header">
+        <div class=@("user-pic" + (State.Value.IsDisplay ? "" : " user-pic-small"))>
+            <NavLink href="/">
+                <img class="img-responsive img-rounded" src="https://raw.githubusercontent.com/azouaoui-med/pro-sidebar-template/gh-pages/src/img/user.jpg"
+                     alt="User picture">
+            </NavLink>
+        </div>
+        <div class="user-info" style="@(State.Value.IsDisplay ? "" : "height: 0;")">
+            <NavLink href="/">
+                <span class="user-name">
+                    Jhon Smith
+                </span>
+            </NavLink>
+            <span class="user-role">Administrator</span>
+            <span class="user-status">
+                <i class="fa fa-circle"></i>
+                <span>Online</span>
+            </span>
+        </div>
+    </div>
+    @*</Authorized>
+        </AuthorizeView>*@
+    @*<div class="sidebar-search">
+            <div>
+                <div class="input-group">
+                    <input type="text" class="form-control search-menu" placeholder="Search...">
+                    <div class="input-group-append">
+                        <span class="input-group-text">
+                            <i class="fa fa-search" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>*@
+    <div class="sidebar-menu">
+        <ul>
+            @*<AuthorizeView>
+            <NotAuthorized>
+                <li @onclick="() => LoginModal.Show()">
+                    <a class="nav-link-item">
+                        <i class="fa fa-sign-in"></i>
+                        <span>Sign In</span>
+                    </a>
+                </li>
+            </NotAuthorized>
+        </AuthorizeView>*@
+            <li>
+                <NavLink class="nav-link-item" href="/courses" Match="NavLinkMatch.Prefix" ActiveClass="active-sidebar-link">
+                    <i class="fa fa-book"></i>
+                    <span class="nav-link-title">Courses</span>
+                </NavLink>
+            </li>
+            <li>
+                <NavLink class="nav-link-item" href="/messages" Match="NavLinkMatch.Prefix" ActiveClass="active-sidebar-link">
+                    <i class="fa fa-comments"></i>
+                    <span class="nav-link-title">Messages</span>
+                    <span class="badge badge-pill badge-primary">Beta</span>
+                </NavLink>
+            </li>
+            <li class="nav-link-home-item">
+                <NavLink class="nav-link-item" href="/" Match="NavLinkMatch.All" ActiveClass="active-sidebar-link">
+                    <i class="fa fa-home"></i>
+                    <span class="nav-link-title">Home</span>
+                </NavLink>
+            </li>
+            <li>
+                <NavLink class="nav-link-item" href="/settings" Match="NavLinkMatch.Prefix" ActiveClass="active-sidebar-link">
+                    <i class="fa fa-cog"></i>
+                    <span class="nav-link-title">Settings</span>
+                </NavLink>
+            </li>
+            <li>
+                <NavLink class="nav-link-item" href="/support" Match="NavLinkMatch.Prefix" ActiveClass="active-sidebar-link">
+                    <i class="fa fa-question-circle-o"></i>
+                    <span class="nav-link-title">Support</span>
+                </NavLink>
+            </li>
+        </ul>
+    </div>
+</aside>
+
+<LoginModal @ref="LoginModal" RegisterModal="RegisterModal" />
+<RegisterModal @ref="RegisterModal" LoginModal="LoginModal" />
+
+<style>
+    .sidebar {
+        background-color: @Theme.SideBarOptions.BackgroundColor;
+        color: @Theme.SideBarOptions.Color;
+    }
+
+        .sidebar a, .sidebar ul li {
+            text-decoration: none;
+            color: @Theme.SideBarOptions.Color;
+        }
+
+        .sidebar a:hover, .sidebar ul li:hover {
+            color: @Theme.SideBarOptions.HoverColor;
+            cursor: pointer;
+        }
+
+        .active-sidebar-link {
+            background-color: @Theme.SideBarOptions.ActiveBackgroundColor!important;
+            color: @Theme.SideBarOptions.ActiveColor!important;
+            border-color: @Theme.SideBarOptions.ActiveColor;
+        }
+</style>
+
+
+
+@code {
+    private LoginModal LoginModal;
+    private RegisterModal RegisterModal;
+
+    [CascadingParameter(Name = "Theme")]
+    public Theme Theme { get; set; }
+
+    [Parameter]
+    public bool IsToggled { get; set; }
+}

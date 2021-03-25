@@ -1,4 +1,6 @@
+using Blazored.LocalStorage;
 using Client.Components.Common;
+using Client.Services;
 using Fluxor;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -30,8 +32,11 @@ namespace Client
             });
 
             builder.Services.AddSingleton<DragAndDropService>();
-
             builder.Services.AddScoped<DialogService>();
+            builder.Services.AddBlazoredLocalStorage();
+
+            builder.Services.AddScoped<CourseService>();
+            builder.Services.AddScoped<ArticleService>();
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 

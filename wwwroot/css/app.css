@@ -1,4 +1,5 @@
 ﻿@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans&display=swap');
+@import url(https://fonts.googleapis.com/css?family=Montserrat:700);
 
 html, body {
     font-family: 'IBM Plex Sans', sans-serif;
@@ -6,6 +7,14 @@ html, body {
 
 a{
     color: inherit;
+}
+
+*:focus{
+    outline: none;
+}
+
+input:hover{
+    border-color: none;
 }
 
     a:hover {

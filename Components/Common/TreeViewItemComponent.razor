@@ -8,23 +8,9 @@ else
 }
 
 @code {
-
-    [Parameter]
-    public List<RecordMainInfoViewModel> ActiveRecords { get; set; }
-
     [Parameter]
     public RecordMainInfoViewModel Record { get; set; }
 
-
-    private bool shouldRender = true;
-
-    public override Task SetParametersAsync(ParameterView parameters)
-    {
-        //shouldRender = parameters.DidParameterChange("Records", Record)
-        //    || parameters.DidParameterChange("ActiveRecords", ActiveRecords);
-        Console.WriteLine(Record?.Name);
-        return base.SetParametersAsync(parameters);
-    }
-
-    protected override bool ShouldRender() => shouldRender;
+    [Parameter]
+    public List<RecordMainInfoViewModel> ActiveRecords { get; set; }
 }

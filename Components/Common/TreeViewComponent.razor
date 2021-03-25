@@ -1,14 +1,19 @@
-﻿@if (Records != null)
+﻿@inject IState<DevModeState> DevModeState
+
+@if (Records != null)
 {
 <div class="tree-container" style=@("font-size: " + FontSize ?? "17px")>
-    <ul>
-        @foreach (var record in Records.Where(r => r.Parent == null).ToList())
+    @if (DevModeState.Value.Enabled)
+    {
+        <TreeViewGroupItemComponent ActiveRecords="ActiveRecords" Record="Records.FirstOrDefault(r => r.Type == RecordType.Root)"/>
+    }
+    else
+    {
+        foreach(var rec in Records.FirstOrDefault(r => r.Type == RecordType.Root)?.Children)
         {
-            <li>
-                <TreeViewItemComponent Record="record" ActiveRecords="ActiveRecords" />
-            </li>
+            <TreeViewItemComponent Record="rec" ActiveRecords="ActiveRecords"/>
         }
-    </ul>
+    }
 </div>
 }
 
@@ -17,6 +22,8 @@
         position: relative;
         overflow: auto;
         width: 100%;
+        height: 100%;
+        padding: 10px;
     }
 
     .tree-container ul {
@@ -51,12 +58,11 @@
         align-items: center;
         cursor: pointer;
         border-radius: 2px;
-        padding: 6px;
         transition: 0.3s ease;
         color: @Theme.ColorOptions.Body;
     }
 
-        .tree-container .node-content:hover {
+        .tree-container .node-content:hover:not(.editor-wrapper) {
             background-color: #e3e3e3;
         }
 
@@ -77,9 +83,11 @@
         }
 
     .node-content-title {
-        display: inline-block;
+        display: flex;
+        align-items: center;
         width: 100%;
         height: 100%;
+        padding: 6px;
     }
 
     .node-content:hover .add-items-wrapper {
@@ -90,13 +98,12 @@
         display: none;
         position: absolute;
         right: 0;
-        height: 30px;
     }
 
     .add-item {
         margin-right: 3px;
-        width: 30px;
-        height: 30px;
+        width: 28px;
+        height: 28px;
         border-radius: 50%;
         border: 1px solid silver;
         background: #ffffff;
@@ -105,7 +112,8 @@
         justify-content: center;
         align-items: center;
         padding: 0;
-        font-size: 25px;
+        font-size: 24px;
+        opacity: 0.95;
     }
 
     .tree-container .node-child span {
@@ -115,6 +123,49 @@
     .tree-container .node-child {
         padding-left: 20px;
     }
+
+    .tree-container .editor-wrapper {
+        box-shadow: 0px 0px 10px 0px rgba(12, 176, 143, 0.3);
+        border: 1px solid rgba(12, 176, 143, 0.3);
+        border-radius: 5px;
+        padding: 0;
+        color: rgba(12, 176, 143, 0.5);
+    }
+
+        .tree-container .editor-wrapper:focus-within {
+            box-shadow: 0px 0px 15px 0px rgba(12, 176, 143, 0.5);
+            outline: none;
+        }
+        .tree-container .editor-wrapper .edit-title {
+            border: none;
+            border-radius: 5px;
+            padding: 4px 8px;
+            width: 100%;
+        }
+
+        .tree-container .editor-wrapper form{
+            display: flex;
+            align-items: center;
+            width: calc(100% - 60px);
+        }
+
+        .tree-container .editor-wrapper button {
+            width: 30px;
+            background: inherit;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+            border: 0;
+        }
+
+        .tree-container .editor-wrapper button:focus {
+            outline: none;
+        }
+
+            .tree-container .editor-wrapper button.control-button {
+                font-size: 25px;
+            }
 </style>
 
 @code {
@@ -132,12 +183,17 @@
 
     protected override void OnParametersSet()
     {
-        //Console.WriteLine(Records?.Count  + "from tree");
+        Console.WriteLine(Records?.Count + " from tree");
         //if(Records != null)
         //{
         //    foreach(var rec in Records)
         //        Console.WriteLine(rec.Name + " : " + rec.Children?.Count);
         //}
         base.OnParametersSet();
+    }
+
+    protected override bool ShouldRender()
+    {
+        return true;
     }
 }

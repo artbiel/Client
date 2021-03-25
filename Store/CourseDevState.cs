@@ -1,8 +1,8 @@
 ﻿using Client.Models;
 using Fluxor;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 
 namespace Client.Store
 {
@@ -28,25 +28,77 @@ namespace Client.Store
         [ReducerMethod]
         public static CourseDevState ReduceSetDevCourseAction(CourseDevState state, SetDevCourseAction action)
         {
-            var list = JsonSerializer.Deserialize<List<RecordMainInfoViewModel>>(JsonSerializer.Serialize(action.Course.Records, options: new() { MaxDepth = 2000}));
+            if (state.Records.Count > 0)
+                return new CourseDevState(state.Records);
+            var list = new List<RecordMainInfoViewModel>();
+            foreach (var item in action.Course.Records)
+            {
+                list.Add((RecordMainInfoViewModel)item.Clone());
+            }
+            foreach (var item in list)
+            {
+                item.Children = list.Where(r => item.Children != null && item.Children.Any(i => i.Id == r.Id)).ToList();
+            }
             return new CourseDevState(list);
         }
         [ReducerMethod]
-        public static CourseDevState ReduceAppendDevCourseRecordAction(CourseDevState state, AppendDevCourseRecordAction action)
+        public static CourseDevState ReduceAddDevCourseRecordAction(CourseDevState state, AddDevCourseRecordAction action)
         {
-            foreach (var rec in state.Records)
+            if (state.Records.Contains(action.ParentRecord))
             {
-                System.Console.WriteLine("form action " + rec.Parent?.Id);
+                if (action.ParentRecord.Children == null)
+                    action.ParentRecord.Children = new();
+                if (action.Record.Type == RecordType.Article)
+                    action.Record.TargetId = new Random().Next();
+                else if (action.Record.Children == null)
+                    action.Record.Children = new();
+                action.ParentRecord.Children = new(action.ParentRecord.Children.Prepend(action.Record));
+                state.Records.Add(action.Record);
             }
-            var parent = state.Records.Find(r => r == action.Record.Parent);
-            System.Console.WriteLine("parent Id: " + action.Record.Parent.Id);
-            if (parent != null)
+            return new CourseDevState(state.Records);
+        }
+
+        [ReducerMethod]
+        public static CourseDevState ReduceEditDevCourseRecordAction(CourseDevState state, EditDevCourseRecordAction action)
+        {
+            var record = state.Records.Find(r => r.Id == action.Record.Id);
+            if (record != null)
             {
-                System.Console.WriteLine("Found");
-                state.Records.Find(r => r.Id == action.Record.Parent.Id).Children.Add(action.Record);
-                return new CourseDevState(state.Records.Append(action.Record).ToList());
+                record = action.Record;
             }
-            System.Console.WriteLine("Not Found");
+            return new CourseDevState(state.Records);
+        }
+
+        [ReducerMethod]
+        public static CourseDevState ReduceRemoveDevCourseRecordAction(CourseDevState state, RemoveDevCourseRecordAction action)
+        {
+            state.Records.Remove(action.Record);
+            state.Records.Find(r => r.Children.Contains(action.Record))?.Children.Remove(action.Record);
+            return new CourseDevState(state.Records);
+        }
+
+        [ReducerMethod]
+        public static CourseDevState ReduceMoveDevCourseRecordAction(CourseDevState state, MoveDevCourseRecordAction action)
+        {
+            if (state.Records.Contains(action.Record))
+            {
+                if (state.Records.Contains(action.PreviousElement))
+                {
+                    var destParent = state.Records.Contains(action.DestinationParent) ? action.DestinationParent :
+                        state.Records.Find(r => r.Children.Contains(action.PreviousElement));
+                    state.Records.Find(r => r.Children.Contains(action.Record)).Children.Remove(action.Record);
+                    destParent.Children.Insert(destParent.Children.IndexOf(action.PreviousElement) + 1, action.Record);
+                }
+                else
+                {
+                    if(state.Records.Contains(action.DestinationParent) && action.Record != action.DestinationParent)
+                    {
+                        Console.WriteLine(action.DestinationParent.Name);
+                        state.Records.Find(r => r.Children.Contains(action.Record)).Children.Remove(action.Record);
+                        action.DestinationParent.Children = action.DestinationParent.Children.Prepend(action.Record).ToList();
+                    }
+                }
+            }
             return new CourseDevState(state.Records);
         }
     }
@@ -62,13 +114,50 @@ namespace Client.Store
         }
     }
 
-    public class AppendDevCourseRecordAction
+    public class AddDevCourseRecordAction
+    {
+        public RecordMainInfoViewModel Record { get; }
+        public RecordMainInfoViewModel ParentRecord { get; }
+
+        public AddDevCourseRecordAction(RecordMainInfoViewModel record, RecordMainInfoViewModel parentRecord)
+        {
+            Record = record;
+            ParentRecord = parentRecord;
+        }
+    }
+
+    public class EditDevCourseRecordAction
     {
         public RecordMainInfoViewModel Record { get; }
 
-        public AppendDevCourseRecordAction(RecordMainInfoViewModel record)
+        public EditDevCourseRecordAction(RecordMainInfoViewModel record)
         {
             Record = record;
+        }
+    }
+
+    public class RemoveDevCourseRecordAction
+    {
+        public RecordMainInfoViewModel Record { get; }
+
+        public RemoveDevCourseRecordAction(RecordMainInfoViewModel record)
+        {
+            Record = record;
+        }
+    }
+
+    public class MoveDevCourseRecordAction
+    {
+        public RecordMainInfoViewModel Record { get; }
+        public RecordMainInfoViewModel PreviousElement { get; }
+        public RecordMainInfoViewModel DestinationParent { get; }
+
+        public MoveDevCourseRecordAction(RecordMainInfoViewModel record, RecordMainInfoViewModel destinationParent,
+            RecordMainInfoViewModel previousElement)
+        {
+            Record = record;
+            DestinationParent = destinationParent;
+            PreviousElement = previousElement;
         }
     }
 }

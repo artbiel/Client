@@ -1,17 +1,27 @@
-﻿@inject IState<CourseState> CourseState
-@inherits FluxorComponent
+﻿@inject IState<DevModeState> DevModeState
+@inject IState<CourseState> CourseState
+@inject IDispatcher Dispatcher
 
-<div class=@("node-content" + (ActiveRecords.Contains(Record) ? " active" : ""))>
-    <NavLink class="node-content-title" href=@($"/courses/{CourseState.Value.CurrentCourse.Id}/{Record.TargetId}")>
-        <i class="fa fa-file-text-o"></i>
-        <span>@Record.Name</span>
-    </NavLink>
-</div>
+<DropTarget T="RecordMainInfoViewModel" Drop="(record) => Dispatcher.Dispatch(new MoveDevCourseRecordAction(record, null, Record))">
+    <Draggable Data="Record">
+        <div class=@("node-content" + (ActiveRecords.Any(r => r.Id == Record.Id) ? " active" : ""))>
+            <NavLink class="node-content-title" href=@($"/courses/{CourseState.Value.CurrentCourse.Id}/{Record.TargetId}")>
+                <i class="fa fa-file-text-o"></i>
+                <span>@Record.Name</span>
+            </NavLink>
+            @if (DevModeState.Value.Enabled)
+            {
+                <TreeViewItemMenuComponent WithEditing="false" WithAdding="false"
+                                           OnDelete="() => Dispatcher.Dispatch(new RemoveDevCourseRecordAction(Record))" />
+            }
+        </div>
+    </Draggable>
+</DropTarget>
 
-    @code {
-        [Parameter]
-        public RecordMainInfoViewModel Record { get; set; }
+@code {
+    [Parameter]
+    public RecordMainInfoViewModel Record { get; set; }
 
-        [Parameter]
-        public List<RecordMainInfoViewModel> ActiveRecords { get; set; }
-    }
+    [Parameter]
+    public List<RecordMainInfoViewModel> ActiveRecords { get; set; }
+}

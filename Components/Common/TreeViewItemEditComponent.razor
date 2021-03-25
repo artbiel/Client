@@ -1,26 +1,28 @@
-﻿@inject IDispatcher Dispatcher
-
-<div class="add-items-wrapper">
-    <div class="add-item" title="Добавить">
-        <RadzenIcon Icon="plus" Style="margin: 0" @onclick="AddRecord"></RadzenIcon>
-    </div>
+﻿<div class="node-content editor-wrapper">
+    <form>
+        <input class="edit-title" @bind-value="Value" @bind-value:event="oninput" autofocus @onkeypress="EnterKeyDownHandler"/>
+    </form>
+    <button @onclick="async () => await OnSubmit.InvokeAsync(Value)">
+        <RadzenIcon Icon="done" Style=" font-size: 25px;"/>
+    </button>
+    <button @onclick="OnAbort">
+        <RadzenIcon Icon="close" Style=" font-size: 25px;" />
+    </button>
 </div>
 
-
-@code {
+@code{
     [Parameter]
-    public RecordMainInfoViewModel Record { get; set; }
+    public string Value { get; set; }
 
-    private void AddRecord()
+    [Parameter]
+    public EventCallback OnAbort { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnSubmit { get; set; }
+
+    private async Task EnterKeyDownHandler(KeyboardEventArgs args)
     {
-        Record = new RecordMainInfoViewModel
-        {
-            Name = "123",
-            Parent = Record,
-            Type = RecordType.Group,
-            Id = new Random().Next(),
-            Children = new(),
-        };
-        Dispatcher.Dispatch(new AppendDevCourseRecordAction(Record));
+        if (args.Key == "Enter")
+            await OnSubmit.InvokeAsync(Value);
     }
 }

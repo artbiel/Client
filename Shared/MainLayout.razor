@@ -3,10 +3,12 @@
 <CascadingValue Value="themes.Dark" Name="Theme">
     <div>
         <Header />
-        <LeftSideBar IsToggled="true"></LeftSideBar>
-        <Main>
-            @Body
-        </Main>
+        <div id="content-wrapper">
+            <NavBar IsToggled="true"></NavBar>
+            <Main>
+                @Body
+            </Main>
+        </div>
     </div>
 </CascadingValue>
 

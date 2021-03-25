@@ -1,7 +1,9 @@
 ﻿@page "/courses/{id:int}"
 @inherits FluxorComponent
 @inject IDispatcher Dispatcher
+@inject IState<DevModeState> DevModeState
 @inject IState<CourseState> CourseState
+@inject IState<CourseDevState> CourseDevState
 
 @if (CourseState.Value.IsLoading)
 {
@@ -33,8 +35,9 @@ else
                 @CourseState.Value.CurrentCourse.Description
             </div>
                 <h3 style="font-weight: bolder">Course structure</h3>
-                <TreeViewComponent Records="CourseState.Value.CurrentCourse.Records" 
-                                   ActiveRecords="CourseState.Value.CurrentCourse.Records?.Where(r => r.Type == RecordType.Group).ToList()"
+                <TreeViewComponent Records="DevModeState.Value.Enabled ? CourseDevState.Value.Records
+                                                        : CourseState.Value.CurrentCourse.Records" 
+                                   ActiveRecords="CourseState.Value.CurrentCourse.Records?.Where(r => r.Type != RecordType.Article).ToList() ?? new()"
                                    FontSize="19px" />
         </div>
     </div>
@@ -98,6 +101,7 @@ else
     {
         base.OnInitialized();
         Dispatcher.Dispatch(new FetchCourseAction(Id));
+        Console.WriteLine(CourseState.Value.CurrentCourse.Records?.Where(r => r.Type != RecordType.Article).Count());
     }
 }
 

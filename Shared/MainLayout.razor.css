@@ -1,4 +1,18 @@
-﻿.sidebar-toggle {
+﻿#content-wrapper {
+    position: absolute;
+    top: 50px;
+    display: flex;
+    height: calc(100vh - 50px);
+    width: 100vw;
+}
+
+@media screen and (max-width: 600px) {
+    #content-wrapper {
+        flex-direction: column;
+    }
+}
+
+.sidebar-toggle {
     border: none;
     padding: 0.8rem;
     margin: 0 1rem 0 0;

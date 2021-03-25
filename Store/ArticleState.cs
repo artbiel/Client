@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DiffPlex.Model;
 using Client.Store;
+using Client.Services;
 
 namespace Client.Store
 {
@@ -64,7 +65,7 @@ namespace Client.Store
             while (active != null)
             {
                 activeList = activeList.Prepend(active);
-                active = active.Parent;
+                active = records.FirstOrDefault(r => r.Children != null ? r.Children.Contains(active) : false);
             }
             return activeList.ToList();
         }
@@ -96,11 +97,13 @@ namespace Client.Store
 
 public class FetchArticleAction
 {
-    public int Id { get; set; }
+    public int CourseId { get; set; }
+    public int ArticleId { get; set; }
 
-    public FetchArticleAction(int id)
+    public FetchArticleAction(int courseId, int articleId)
     {
-        Id = id;
+        CourseId = courseId;
+        ArticleId = articleId;
     }
 }
 
@@ -116,99 +119,20 @@ public class FetchArticleResultAction
 
 public class FecthArticleActionEffect : Effect<FetchArticleAction>
 {
-    public override Task HandleAsync(FetchArticleAction action, IDispatcher dispatcher)
-    {
-        var chapter1 = new RecordMainInfoViewModel
-        {
-            Id = 1,
-            Type = RecordType.Group,
-            Name = "Глава 1"
-        };
-        var subchapter1_1 = new RecordMainInfoViewModel
-        {
-            Id = 2,
-            Type = RecordType.Group,
-            Name = "Подглава 1",
-            Parent = chapter1
-        };
-        var article1_1_1 = new RecordMainInfoViewModel
-        {
-            Id = 3,
-            Type = RecordType.Article,
-            TargetId = 1,
-            Name = "Статья 1",
-            Parent = subchapter1_1
-        };
-        var article1_1_2 = new RecordMainInfoViewModel
-        {
-            Id = 4,
-            Type = RecordType.Article,
-            TargetId = 2,
-            Name = "Статья 2",
-            Parent = subchapter1_1
-        };
-        var subchapter1_2 = new RecordMainInfoViewModel
-        {
-            Id = 5,
-            Type = RecordType.Group,
-            Name = "Подглава 2",
-            Parent = chapter1
-        };
-        var article1_2_1 = new RecordMainInfoViewModel
-        {
-            Id = 6,
-            Type = RecordType.Article,
-            TargetId = 3,
-            Name = "Статья 1",
-            Parent = subchapter1_2
-        };
-        var article1_2_2 = new RecordMainInfoViewModel
-        {
-            Id = 7,
-            Type = RecordType.Article,
-            TargetId = 4,
-            Name = "Статья 2",
-            Parent = subchapter1_2
-        };
-        chapter1.Children = new() { subchapter1_1, subchapter1_2 };
-        subchapter1_1.Children = new() { article1_1_1, article1_1_2 };
-        subchapter1_2.Children = new() { article1_2_1, article1_2_2 };
+    private readonly CourseService _courseService;
+    private readonly ArticleService _articleService;
 
-        var commit = new CommitViewModel
-        {
-            Id = 0,
-            Title = "First Commit",
-            CreatedAt = new DateTime(2010, 11, 2, 14, 23, 22),
-            CreatedBy = "Тёмыч",
-            Description = "Первый коммит Тёмыча",
-            DiffWords = new string[] { "Эта", " ", "статья", " ", "про", " ", "Тёмыча" },
-            DiffBlocks = new List<DiffBlock>() { new DiffBlock(0, 0, 0, 7) }
-        };
-        var article = new ArticleAggregatedViewModel()
-        {
-            ArticleInfo = new()
-                {
-                Id = action.Id,
-                Title = "Hello World",
-                Commits = new List<CommitViewModel>() { commit }
-            },
-            CourseInfo = new()
-            {
-                Id = 1,
-                Name = "Основы C#",
-                Description = "Курс разработан для студентов первого года обучения компьютерных специальностей УрФУ." +
-                    " Рассчитан на людей с минимальным опытом программирования и знакомит с основами синтаксиса C#" +
-                    " и стандартными классами .NET, с основами ООП и базовыми алгоритмами.",
-                ImgSrc = "https://www.secretorange.co.uk/media/TagImage/c-sharp.png",
-                Difficulty = Difficulty.Intermediate,
-                Records = new() { subchapter1_1, article1_2_1, chapter1, subchapter1_2, article1_1_1, article1_1_2, article1_2_2 }
-            },
-        };
-        dispatcher.Dispatch(new SetCourseAction(article.CourseInfo));
-        dispatcher.Dispatch(new FetchArticleResultAction(article));
-        return Task.CompletedTask;
+    public FecthArticleActionEffect(CourseService courseService, ArticleService articleService)
+    {
+        _courseService = courseService;
+        _articleService = articleService;
     }
 
-
+    public override async Task HandleAsync(FetchArticleAction action, IDispatcher dispatcher)
+    {
+        var course = await _courseService.GetCourse(action.CourseId);
+        var article = await _articleService.GetArticle(action.ArticleId);
+        dispatcher.Dispatch(new SetCourseAction(course));
+        dispatcher.Dispatch(new FetchArticleResultAction(new() { CourseInfo = course, ArticleInfo = article }));
+    }
 }
-

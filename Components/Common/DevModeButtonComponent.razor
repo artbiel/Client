@@ -1,0 +1,43 @@
+﻿@inject IState<DevModeState> DevModeState
+@inject IDispatcher Dispatcher
+
+<button class=@("switch" + (DevModeState.Value.Enabled ? " active" : "")) 
+        @onclick="() => Dispatcher.Dispatch(new ChangeDevModeAction(!DevModeState.Value.Enabled))">
+    @(DevModeState.Value.Enabled ? "Dev" : "View")
+</button>
+
+<style>
+    .switch {
+        font-family: 'Montserrat', sans-serif;
+        padding: 3px 5px;
+        width: 52px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #666;
+        font-size: 15px;
+        border: 1px solid #E1E1E1;
+        border-radius: 4px;
+        background: rgba(245,245,245,0.8);
+        transition: 0.2s ease;
+        box-shadow: 0px 0px 5px #E1E1E1;
+    }
+
+    .switch:focus {
+        outline: none;
+    }
+
+        .switch.active {
+            color: #fff;
+            background: #19aa8d;
+            -webkit-box-shadow: 0px 0px 15px 2px rgba(12, 176, 143, 0.3);
+            -moz-box-shadow: 0px 0px 15px 2px rgba(12, 176, 143, 0.3);
+            box-shadow: 0px 0px 15px 2px rgba(12, 176, 143, 0.3);
+        }
+</style>
+
+@code {
+    bool isToggled = false;
+}
