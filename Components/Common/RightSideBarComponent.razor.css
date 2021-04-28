@@ -1,0 +1,26 @@
+﻿.right-bar-container {
+    min-width: 200px;
+    max-width: 100vw;
+    width: 350px;
+    position: fixed;
+    height: calc(100vh - 50px);
+    z-index: 1;
+    top: 50px;
+    right: 0;
+    border-left: 1px solid #DBE0E2;
+    transition: 0.5s ease;
+}
+
+.collapsed {
+    right: -350px;
+}
+
+@media screen and (max-width: 1080px){
+    .right-bar-container{
+        width: 100vw;
+    }
+
+    .collapsed{
+        right: -100vw;
+    }
+}

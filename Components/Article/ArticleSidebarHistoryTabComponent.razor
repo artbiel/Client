@@ -1,0 +1,70 @@
+﻿<button class=@("history-type-toggler" + (CurrentTab == ArticleSidebarHistoryTab.Article ? " active-history-type-toggler": "")) @onclick="OnTabChanged">
+    <div>
+        <div>
+            <span>Course History</span>
+            <RadzenIcon Icon="unfold_more"></RadzenIcon>
+        </div>
+        <div>
+            <span>Article History</span>
+            <RadzenIcon Icon="unfold_more"></RadzenIcon>
+        </div>
+    </div>
+</button>
+
+<style>
+    .history-type-toggler {
+        flex-grow: 1;
+        height: 40px;
+        border: none;
+        border-bottom: 1px solid silver;
+        transition: 0.2s ease;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        background: none;
+        font-family: 'Montserrat', sans-serif;
+    }
+
+        .history-type-toggler div {
+            position: relative;
+            top: 0;
+            transition: 0.2s ease;
+        }
+
+            .history-type-toggler div div {
+                height: 40px;
+                width: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+                .history-type-toggler div div i {
+                    margin-left: 10px;
+                    font-size: 90%;
+                }
+
+    .active-history-type-toggler div {
+        top: -20px;
+    }
+
+    .history-type-toggler:focus {
+        border: none;
+        outline: none;
+    }
+</style>
+
+@code {
+
+    [CascadingParameter(Name = "Theme")]
+    public Theme Theme { get; set; }
+
+    [Parameter]
+    public EventCallback OnTabChanged { get; set; }
+
+    [Parameter]
+    public ArticleSidebarHistoryTab CurrentTab { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+}

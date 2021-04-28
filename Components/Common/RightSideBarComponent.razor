@@ -1,0 +1,36 @@
+﻿@inherits FluxorComponent
+@inject IState<RightSidebarState> RightSidebarState
+
+<div class=@("right-bar-container" + (RightSidebarState.Value.IsDisplay ? "" : " collapsed"))>
+    @ChildContent
+</div>
+
+<style>
+    .right-bar-container {
+        background-color: @Theme.BackgroundOptions.Body;
+    }
+</style>
+
+@code {
+    [Inject]
+    public IDispatcher Dispatcher { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Dispatcher.Dispatch(new RightSidebarExistsAction(true));
+        base.OnInitialized();
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        Dispatcher.Dispatch(new RightSidebarExistsAction(false));
+        base.Dispose(disposing);
+    }
+
+    [CascadingParameter(Name = "Theme")]
+    public Theme Theme { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+}

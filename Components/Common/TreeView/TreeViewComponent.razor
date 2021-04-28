@@ -1,20 +1,22 @@
-﻿@inject IState<DevModeState> DevModeState
+﻿@namespace Client.Components.Common
+@inject IState<DevModeState> DevModeState
+@inject IState<CourseState> CourseState
 
 @if (Records != null)
 {
-<div class="tree-container" style=@("font-size: " + FontSize ?? "17px")>
-    @if (DevModeState.Value.Enabled)
-    {
-        <TreeViewGroupItemComponent ActiveRecords="ActiveRecords" Record="Records.FirstOrDefault(r => r.Type == RecordType.Root)"/>
-    }
-    else
-    {
-        foreach(var rec in Records.FirstOrDefault(r => r.Type == RecordType.Root)?.Children)
+    <div class="tree-container" style=@("font-size: " + FontSize ?? "17px")>
+        @if (DevModeState.Value.Enabled)
         {
-            <TreeViewItemComponent Record="rec" ActiveRecords="ActiveRecords"/>
+            <TreeViewGroupItemComponent ActiveRecords="ActiveRecords" Record="Records.FirstOrDefault(r => r.Type == RecordType.Root)" />
         }
-    }
-</div>
+        else
+        {
+            foreach (var rec in Records.FirstOrDefault(r => r.Type == RecordType.Root)?.Children)
+            {
+                <TreeViewItemComponent Record="rec" ActiveRecords="ActiveRecords" />
+            }
+        }
+    </div>
 }
 
 <style>
@@ -88,6 +90,7 @@
         width: 100%;
         height: 100%;
         padding: 6px;
+        color: @Theme.ColorOptions.Body
     }
 
     .node-content:hover .add-items-wrapper {
@@ -122,6 +125,7 @@
 
     .tree-container .node-child {
         padding-left: 20px;
+        border-left: 1px solid silver;
     }
 
     .tree-container .editor-wrapper {
@@ -144,6 +148,11 @@
         }
 
         .tree-container .editor-wrapper form{
+            display: flex;
+            align-items: center;
+        }
+
+        .tree-container .editor-wrapper form .form-inputs {
             display: flex;
             align-items: center;
             width: calc(100% - 60px);
@@ -180,20 +189,4 @@
 
     [Parameter]
     public List<RecordMainInfoViewModel> ActiveRecords { get; set; } = new();
-
-    protected override void OnParametersSet()
-    {
-        Console.WriteLine(Records?.Count + " from tree");
-        //if(Records != null)
-        //{
-        //    foreach(var rec in Records)
-        //        Console.WriteLine(rec.Name + " : " + rec.Children?.Count);
-        //}
-        base.OnParametersSet();
-    }
-
-    protected override bool ShouldRender()
-    {
-        return true;
-    }
 }

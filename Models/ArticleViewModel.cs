@@ -6,7 +6,7 @@ namespace Client.Models
     {
         public int Id { get; set; }
         public string Title { get; set; }
-        public List<CommitViewModel> Commits { get; set; }
+        public List<ArticleCommitViewModel> Commits { get; set; }
     }
 }
 

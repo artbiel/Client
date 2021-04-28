@@ -5,10 +5,6 @@ html, body {
     font-family: 'IBM Plex Sans', sans-serif;
 }
 
-a{
-    color: inherit;
-}
-
 *:focus{
     outline: none;
 }

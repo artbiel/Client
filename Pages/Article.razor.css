@@ -1,0 +1,52 @@
+﻿.edit-btn {
+    color: #f0f0f0;
+    height: 40px;
+    font-size: 16px;
+    font-weight: bold;
+    background: #19aa8d;
+    border-radius: 3px;
+    border: none;
+    padding: 0 20px;
+    outline: none !important;
+}
+
+
+.article-wrapper {
+    transition: 0.5s ease;
+    min-width: inherit;
+    width: 100%;
+}
+
+.article-wrapper-with-sidebar{
+    width: calc(100% - 350px);
+}
+
+.breadcrumb-item:first-child {
+    font-weight: bolder;
+}
+
+::deep .breadcrumb-item.dev a {
+    color: #19aa8d!important;
+}
+
+p {
+    font-size: 17px;
+    line-height: 27px;
+    margin: 0;
+    clear: both;
+}
+
+    p + p {
+        margin-top: 27px;
+    }
+
+
+@media screen and (max-width: 1080px){
+    .article-wrapper-with-sidebar {
+        width: 100%;
+    }
+
+    .article-breadcrumb {
+        display: none;
+    }
+}

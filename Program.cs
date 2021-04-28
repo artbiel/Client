@@ -1,5 +1,5 @@
 using Blazored.LocalStorage;
-using Client.Components.Common;
+using Client.Infrastructure;
 using Client.Services;
 using Fluxor;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -33,6 +33,7 @@ namespace Client
 
             builder.Services.AddSingleton<DragAndDropService>();
             builder.Services.AddScoped<DialogService>();
+            builder.Services.AddScoped<NotificationService>();
             builder.Services.AddBlazoredLocalStorage();
 
             builder.Services.AddScoped<CourseService>();

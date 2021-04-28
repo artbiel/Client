@@ -263,7 +263,7 @@
     }
 }
 
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 1080px) {
     .sidebar-behind {
         order: 2;
         flex-basis: 70px !important;

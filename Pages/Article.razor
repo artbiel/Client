@@ -1,10 +1,11 @@
 ﻿@page "/courses/{courseId:int}/{articleId:int}"
-@inherits FluxorComponentWithRightSidebar
+@inherits FluxorComponent
 @inject IState<ArticleState> ArticleState
 @inject IState<CourseState> CourseState
 @inject IState<RightSidebarState> RightSidebarState
 @inject IState<DevModeState> DevModeState
 @inject DialogService DialogService
+@inject IDispatcher Dispatcher
 
 
 @if (ArticleState.Value.IsLoading)
@@ -13,66 +14,41 @@
 }
 else
 {
-    <div class="article-wrapper">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item">
-                    <NavLink href="@("/courses/" + CourseState.Value.CurrentCourse.Id)">
-                        @CourseState.Value.CurrentCourse.Name
-                    </NavLink>
-                </li>
-                @foreach (var r in ArticleState.Value.ActiveRecords.Skip(1))
-                {
-                    <li class="breadcrumb-item active">@r.Name</li>
-                }
-            </ol>
-        </nav>
-        <div class="d-flex justify-content-between align-items-center">
-            <h1>@ArticleState.Value.CurrentArticle.Title</h1>
+    if (ArticleState.Value.CurrentArticle == null)
+    {
+        <NotFoundComponent />
+    }
+    else
+    {
+        <div class=@("article-wrapper" + (RightSidebarState.Value.IsDisplay ? " article-wrapper-with-sidebar" : ""))>
+            <nav aria-label="breadcrumb" class="article-breadcrumb">
+                <ol class="breadcrumb">
+                    <li class=@("breadcrumb-item" + (DevModeState.Value.Enabled ? " dev" : ""))>
+                        <NavLink href="@("/courses/" + CourseState.Value.CurrentCourse.Id)">
+                            @CourseState.Value.CurrentCourse.Name
+                        </NavLink>
+                    </li>
+                    @foreach (var r in CourseState.Value.ActiveRecords.Skip(1))
+                    {
+                        <li class="breadcrumb-item active">@r.Name</li>
+                    }
+                </ol>
+            </nav>
             @if (DevModeState.Value.Enabled)
             {
-                <button class="edit-btn">Edit</button>
+                <ArticleEditMode />
+            }
+            else
+            {
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1>@ArticleState.Value.CurrentArticle.Title</h1>
+                </div>
+                @string.Join("", ArticleState.Value.CurrentWords)
             }
         </div>
-        @string.Join("", ArticleState.Value.CurrentWords)
-        <ArticleSidebarComponent />
-    </div>
+    }
+    <ArticleSidebarComponent />
 }
-
-<style>
-    .edit-btn {
-        color: #f0f0f0;
-        height: 40px;
-        font-size: 16px;
-        font-weight: bold;
-        background: #19aa8d;
-        border-radius: 3px;
-        border: none;
-        padding: 0 20px;
-        outline: none !important;
-    }
-
-    .article-wrapper {
-        transition: 0.5s ease;
-        width: @(RightSidebarState.Value.IsDisplay ? "calc(100% - 300px)" : "100%");
-        min-width: inherit;
-    }
-
-    .breadcrumb-item a {
-        color: #007bff;
-    }
-
-    p {
-        font-size: 17px;
-        line-height: 27px;
-        margin: 0;
-        clear: both;
-    }
-
-        p + p {
-            margin-top: 27px;
-        }
-</style>
 
 @code {
 
@@ -82,12 +58,43 @@ else
     [Parameter]
     public int ArticleId { get; set; }
 
-    private bool articleChanged = true;
+    protected override void OnInitialized()
+    {
+        DevModeState.StateChanged += SubscribeDevModeState;
+        ArticleState.StateChanged += SubscribeArticleState;
+        base.OnInitialized();
+    }
 
     protected override void OnParametersSet()
     {
-        articleChanged = ArticleId != ArticleState.Value.CurrentArticle?.Id;
-        if (articleChanged)
-            Dispatcher.Dispatch(new FetchArticleAction(CourseId, ArticleId));
+        if (ArticleId != ArticleState.Value.CurrentArticle?.Id)
+        {
+            Dispatcher.Dispatch(new FetchArticleAction(CourseId, ArticleId, DevModeState.Value.Enabled));
+        }
+        base.OnParametersSet();
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        DevModeState.StateChanged -= SubscribeDevModeState;
+        ArticleState.StateChanged -= SubscribeArticleState;
+        Dispatcher.Dispatch(new ClearArticleStateAction());
+        Dispatcher.Dispatch(new ClearPageTitleAction());
+        base.Dispose(disposing);
+    }
+
+    private void SubscribeArticleState(object sender, ArticleState state)
+    {
+        if (ArticleState.Value.CurrentArticle != null)
+        {
+            Dispatcher.Dispatch(new SetPageTitleAction(state.CurrentArticle.Title));
+        }
+    }
+
+    private void SubscribeDevModeState(object sender, DevModeState state)
+    {
+        Dispatcher.Dispatch(new FetchArticleAction(CourseId, ArticleId, DevModeState.Value.Enabled));
+        if (ArticleState.Value.CurrentArticle != null)
+            Dispatcher.Dispatch(new SetPageTitleAction(ArticleState.Value.CurrentArticle.Title));
     }
 }

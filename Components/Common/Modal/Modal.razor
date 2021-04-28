@@ -1,4 +1,6 @@
-﻿<div class="modal modal-wrapper" tabindex="-1" role="dialog"
+﻿@namespace Client.Components.Common
+
+<div class="modal modal-wrapper" tabindex="-1" role="dialog"
      style=@("display: " + (Display ? "block" : "none" ))>
     <div class="modal-dialog @DialogClass" style="@DialogStyle" role="document">
         <div class="modal-content" style="z-index: 2000">
@@ -54,7 +56,8 @@
 
     private bool Display = false;
 
-    public void Show() {
+    public void Show()
+    {
         Display = true;
         StateHasChanged();
     }

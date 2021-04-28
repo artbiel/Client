@@ -1,6 +1,9 @@
 ﻿using Client.Models;
+using DiffPlex.Model;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace Client.Components.Common
+namespace Client.Infrastructure
 {
     public class Themes
     {

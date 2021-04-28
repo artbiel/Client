@@ -1,0 +1,36 @@
+﻿@namespace Client.Components.Common
+@inject IDispatcher Dispatcher
+
+@if (Commits != null)
+{
+    <div class="history">
+        <div class="history-list">
+            @foreach (var commit in Commits)
+            {
+                <HistoryItemComponent Commit="commit" IsActive="commit == ActiveCommit" ToggleIsActive="SetActiveCommit" />
+            }
+        </div>
+    </div>
+}
+
+@code{
+    [Parameter]
+    public List<ArticleCommitViewModel> Commits { get; set; }
+
+    [Parameter]
+    public ArticleCommitViewModel ActiveCommit { get; set; }
+
+    private void SetActiveCommit(ArticleCommitViewModel commit)
+    {
+        //ActiveCommit = commit;
+        //Console.WriteLine(ActiveCommit?.Id);
+        Dispatcher.Dispatch(new SetCurrentCommitAction(commit.Id));
+    }
+}
+
+<style>
+    .history {
+        margin-bottom: 1rem;
+        overflow: auto;
+    }
+</style>

@@ -1,4 +1,12 @@
-﻿
+﻿.page-title{
+    margin: 0 0 0 10px;
+    font-size: 25px;
+    line-height: 50px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    display: block;
+}
+
 .nav-button {
     display: flex;
     -webkit-justify-content: center;
@@ -30,7 +38,8 @@
     left: 0;
     right: 0;
     background-color: #ffffff;
-    min-height: 3.125rem;
+    min-height: 50px;
+    max-height: 50px;
     border-bottom: 1px solid #eaeef0;
     color: #212529;
     -webkit-box-shadow: none;
@@ -42,8 +51,8 @@
 }
 
 
-@media screen and (max-width: 600px){
+@media screen and (max-width: 1080px){
     .menu-toggler-button{
-        visibility: hidden;
+        display: none;
     }
 }

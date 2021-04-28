@@ -1,4 +1,5 @@
-﻿@inject DragAndDropService DragAndDropService
+﻿@namespace Client.Components.Common
+@inject DragAndDropService DragAndDropService
 @typeparam T
 <div ondragover="event.preventDefault()" @ondrop="@OnDrop" @ondrop:stopPropagation>
     @ChildContent

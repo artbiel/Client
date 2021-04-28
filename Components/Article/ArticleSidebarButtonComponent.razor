@@ -1,0 +1,49 @@
+﻿<button class=@("article-sidebar-tab-toggler " + (IsActive ? "active-tab" : "")) @onclick="OnTabChanged">
+    @ChildContent
+</button>
+
+<style>
+    .article-sidebar-tab-toggler {
+        flex-grow: 5;
+        padding: 5px 0;
+        font-size: 14px;
+        transition: 0.2s ease;
+        border: none;
+        border-bottom: 1px solid silver;
+    }
+
+    article-sidebar-tab-toggler:not(:last-child) {
+        border-right: 1px solid silver;
+    }
+
+    .article-sidebar-tab-toggler:focus {
+        border: none;
+        outline: none;
+    }
+
+    .article-sidebar-tab-toggler i {
+        margin-right: 7px;
+    }
+
+    .active-tab {
+       /* font-size: 20px;
+        -webkit-box-shadow: 0px 0px 19px 2px rgba(107, 107, 107, 0.18) inset;
+        -moz-box-shadow: 0px 0px 19px 2px rgba(107, 107, 107, 0.18) inset;
+        box-shadow: 0px 0px 19px 2px rgba(107, 107, 107, 0.18) inset;*/
+       font-size: 120%;
+       background: none;
+       border-bottom: none;
+       flex-grow: 7;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public EventCallback OnTabChanged { get; set; }
+
+    [Parameter]
+    public bool IsActive { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+}

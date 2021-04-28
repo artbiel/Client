@@ -3,7 +3,6 @@
 @inject IDispatcher Dispatcher
 @inject IState<DevModeState> DevModeState
 @inject IState<CourseState> CourseState
-@inject IState<CourseDevState> CourseDevState
 
 @if (CourseState.Value.IsLoading)
 {
@@ -34,11 +33,10 @@ else
             <div class="course-description-wrapper ">
                 @CourseState.Value.CurrentCourse.Description
             </div>
-                <h3 style="font-weight: bolder">Course structure</h3>
-                <TreeViewComponent Records="DevModeState.Value.Enabled ? CourseDevState.Value.Records
-                                                        : CourseState.Value.CurrentCourse.Records" 
-                                   ActiveRecords="CourseState.Value.CurrentCourse.Records?.Where(r => r.Type != RecordType.Article).ToList() ?? new()"
-                                   FontSize="19px" />
+            <h3 style="font-weight: bolder">Course structure</h3>
+            <TreeViewComponent Records="CourseState.Value.CurrentCourse.Records"
+                               ActiveRecords="CourseState.Value.CurrentCourse.Records?.Where(r => r.Type != RecordType.Article).ToList() ?? new()"
+                               FontSize="19px" />
         </div>
     </div>
 }
@@ -99,9 +97,13 @@ else
 
     protected override void OnInitialized()
     {
-        base.OnInitialized();
-        Dispatcher.Dispatch(new FetchCourseAction(Id));
+        DevModeState.StateChanged += (sender, state) =>
+        {
+            Dispatcher.Dispatch(new FetchCourseAction(Id, DevModeState.Value.Enabled));
+        };
+        Dispatcher.Dispatch(new FetchCourseAction(Id, DevModeState.Value.Enabled));
         Console.WriteLine(CourseState.Value.CurrentCourse.Records?.Where(r => r.Type != RecordType.Article).Count());
+        base.OnInitialized();
     }
 }
 

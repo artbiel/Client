@@ -1,4 +1,6 @@
-﻿<Modal @ref="Modal" DialogClass="modal-login" DialogStyle="width: 450px;">
+﻿@namespace Client.Components.Common
+
+<Modal @ref="Modal" DialogClass="modal-login" DialogStyle="width: 450px;">
     <Title>Sign Up</Title>
     <Body>
         <EditForm OnSubmit="OnSubmit" Model="user">
@@ -29,7 +31,7 @@
             </div>
             <div class="form-group">
                 <div class="custom-control custom-checkbox">
-                    <InputCheckbox class="custom-control-input" @bind-Value="user.AgreementConfirmation" id="register-form-agreement"/>
+                    <InputCheckbox class="custom-control-input" @bind-Value="user.AgreementConfirmation" id="register-form-agreement" />
                     <label class="custom-control-label" for="register-form-agreement">Agree</label>
                 </div>
             </div>
@@ -49,8 +51,8 @@
 </style>
 
 @code{
-        [Parameter]
-        public LoginModal LoginModal { get; set; }
+    [Parameter]
+    public LoginModal LoginModal { get; set; }
 
     private Modal Modal;
 
@@ -79,7 +81,7 @@
 
     protected override void OnInitialized()
     {
-        user = new User() { AgreementConfirmation = false};
+        user = new User() { AgreementConfirmation = false };
         base.OnInitialized();
     }
 }

@@ -1,0 +1,136 @@
+﻿@namespace Client.Components.Common
+
+<div class="history-item">
+    <div @onclick="() => { if (!IsActive) ToggleIsActive.InvokeAsync(Commit); }" class="history-item-header">
+        <div class=@("history-icon status-intransit d-flex align-items-center justify-content-center"
+                     + (IsActive ? " history-icon-active" : ""))>
+            <RadzenIcon Icon="@icon"></RadzenIcon>
+        </div>
+        <div class="history-title">@Commit.Title</div>
+    </div>
+    <div class="history-content">
+        @if (IsActive)
+        {
+            <div class="history-author"><span>by</span> @Commit.CreatedBy</div>
+        }
+        <div class="history-date">@Commit.CreatedAt.ToString("dd MMMM yyyy HH:mm")</div>
+        @if (IsActive)
+        {
+            <div class="history-description">
+                @Commit.Description
+            </div>
+            <hr />
+        }
+    </div>
+</div>
+
+<style>
+    .history-item {
+        border-left: 1px solid #e5e5e5;
+        position: relative;
+        padding: 10px 10px 5px 40px;
+        font-size: .9rem;
+        margin-left: 2rem;
+        min-height: 5rem
+    }
+
+        .history-item:last-child {
+            padding-bottom: 4rem
+        }
+
+    .history-item-header {
+        cursor: pointer;
+    }
+
+    .history-item .history-title {
+        font-size: 17px;
+        font-weight: 500;
+    }
+
+    .history-item .history-content {
+        font-size: 14px;
+    }
+
+        .history-item .history-content .history-author {
+            line-height: 16px;
+        }
+
+        .history-item .history-content .history-date {
+            font-size: 12px;
+            color: #888;
+            margin: 2px 0 4px 0;
+        }
+
+        .history-item .history-content span {
+            color: #888;
+            font-size: 85%
+        }
+
+        .history-item .history-content hr {
+            margin: 10px 0 0 0;
+        }
+
+    .history-item .history-description {
+        line-height: 17px;
+        font-size: 13px;
+    }
+
+    .history-item .history-icon {
+        line-height: 2.6rem;
+        position: absolute;
+        left: -1.3rem;
+        width: 2.6rem;
+        height: 2.6rem;
+        text-align: center;
+        border-radius: 50%;
+        border: 1px solid #e5e5e5;
+        color: #B2B2B2;
+        background: @Theme.BackgroundOptions.Body;
+    }
+
+        .history-item .history-icon i {
+            font-size: 25px;
+        }
+
+    .history-item .history-icon-active {
+        /* color: #19aa8d;*/
+        color: #fafafa;
+        background-color: #179b81;
+        -webkit-box-shadow: 0px 0px 20px 2px rgba(12, 176, 143, 0.23);
+        -moz-box-shadow: 0px 0px 20px 2px rgba(12, 176, 143, 0.23);
+        box-shadow: 0px 0px 20px 2px rgba(12, 176, 143, 0.23);
+    }
+</style>
+
+@code {
+    [CascadingParameter(Name = "Theme")]
+    public Theme Theme { get; set; }
+
+    [Parameter]
+    public ArticleCommitViewModel Commit { get; set; }
+
+    [Parameter]
+    public bool IsActive { get; set; }
+
+    [Parameter]
+    public EventCallback<ArticleCommitViewModel> ToggleIsActive { get; set; }
+
+    private string icon = "";
+
+    protected override void OnParametersSet()
+    {
+        icon = Commit.Type switch
+        {
+            ArticleCommitType.Initital => "flag",
+            ArticleCommitType.Correction => "edit",
+            ArticleCommitType.Addition => "add",
+            ArticleCommitType.Typo => "title",
+            ArticleCommitType.VersionChanged => "fiber_new",
+            _ => ""
+        };
+        if (Commit.CommitState == CommitState.Developing)
+            icon = "code";
+        base.OnParametersSet();
+    }
+}
+

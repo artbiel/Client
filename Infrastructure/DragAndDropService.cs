@@ -1,4 +1,4 @@
-﻿namespace Client.Components.Common
+﻿namespace Client.Infrastructure
 {
     public class DragAndDropService
     {
@@ -7,13 +7,10 @@
 
         public void StartDrag(object data, string zone)
         {
-            this.Data = data;
-            this.Zone = zone;
+            Data = data;
+            Zone = zone;
         }
 
-        public bool Accepts(string zone)
-        {
-            return Zone == zone;
-        }
+        public bool Accepts(string zone) => Zone == zone;
     }
 }

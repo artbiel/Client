@@ -155,7 +155,7 @@
         commits = commits.Append(new()
         {
             Id = id,
-            DiffBlocks = DiffResult.DiffBlocks,
+            DiffBlocks = DiffResult.DiffBlocks.ToArticleDiffBlocks(),
             DiffWords = diffWords.ToArray()
         }).ToList();
         ShowCommit(id);
@@ -184,8 +184,8 @@
 
     string[] CurrentWords = new string[0];
 
-    List<CommitViewModel>
-    commits = new List<CommitViewModel>
+    List<ArticleCommitViewModel>
+    commits = new List<ArticleCommitViewModel>
         ();
 
     protected override void OnInitialized()

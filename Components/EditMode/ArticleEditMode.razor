@@ -1,13 +1,39 @@
-﻿@inject IState<ArticleState> ArticleState
-
-<EditForm Model="@articleText">
-    <InputText @bind-Value="@articleTitle" class="article-title-edit" />
-</EditForm>
-<RadzenHtmlEditor @bind-Value="articleText" UploadUrl="upload/image" class="article-content-edit">
-
+﻿@inherits FluxorComponent
+@inject IState<ArticleState> ArticleState
+@inject DialogService DialogService
+@inject IDispatcher Dispatcher
+@*<EditForm Model="@articleTitle">
+        <InputText @bind-Value="@articleTitle" class="article-title-edit" />
+    </EditForm>*@
+<RadzenHtmlEditor @bind-Value="articleContent" Execute="OnExecute" UploadUrl="upload/image" class="article-content-edit" Change="OnChange">
+    <RadzenHtmlEditorUndo />
+    <RadzenHtmlEditorRedo />
+    <RadzenHtmlEditorSeparator />
+    <RadzenHtmlEditorBold />
+    <RadzenHtmlEditorItalic />
+    <RadzenHtmlEditorUnderline />
+    <RadzenHtmlEditorStrikeThrough />
+    <RadzenHtmlEditorSeparator />
+    <RadzenHtmlEditorImage />
+    <RadzenHtmlEditorLink />
+    <RadzenHtmlEditorUnlink />
+    <RadzenHtmlEditorSeparator />
+    <RadzenHtmlEditorFormatBlock />
+    <RadzenHtmlEditorCustomTool CommandName="SaveContent" Icon="save_file" Title="Save" />
 </RadzenHtmlEditor>
 
 <style>
+    .rz-dialog{
+        width: 100vw;
+        height: 100%;
+        max-width: 100vw;
+    }
+
+    .rz-html-editor-toolbar{
+        position: sticky;
+        top: 50px;
+    }
+
     .article-title-edit {
         padding: 0;
         line-height: 1.2;
@@ -19,7 +45,7 @@
         margin: 0 0 0.5rem 0;
     }
 
-    .article-content-edit{
+    .article-content-edit {
         border: none;
         font-family: inherit;
     }
@@ -31,15 +57,60 @@
 </style>
 
 @code {
-    string articleTitle = "";
-    string articleText = "";
+        string articleTitle = "";
+        string articleContent = "";
 
-    [CascadingParameter(Name = "Theme")]
-    public Theme Theme { get; set; }
+        async Task OnExecute(HtmlEditorExecuteEventArgs args)
+        {
+            if (args.CommandName == "SaveContent")
+            {
+                await args.Editor.ExecuteCommandAsync(HtmlEditorCommands.InsertHtml, "");
+                Dispatcher.Dispatch(new SaveArticleContentAction(ArticleState.Value.CurrentArticle.Id,
+                    ArticleState.Value.CurrentCommit.Id, articleContent));
+            }
+        }
+
+        private void OnChange(string arg)
+        {
+            Console.WriteLine(arg.Replace("><", "> <"));
+        }
+
+        [CascadingParameter(Name = "Theme")]
+        public Theme Theme { get; set; }
+
+        async Task InsertImageFromList(RadzenHtmlEditor editor)
+        {
+            await editor.SaveSelectionAsync();
+
+            var result = await DialogService.OpenAsync<HtmlEditorImgUploadComponent>("Select image file");
+
+            await editor.RestoreSelectionAsync();
+
+            if (result != null)
+            {
+                await editor.ExecuteCommandAsync(HtmlEditorCommands.InsertHtml, $"<img style=\"max-width: 100%\" src=\"{result}\">");
+            }
+        }
 
     protected override void OnInitialized()
     {
-        articleTitle = ArticleState.Value.CurrentArticle.Title;
-        articleText = string.Join("", ArticleState.Value.CurrentWords);
+        SetContent(null, ArticleState.Value);
+        ArticleState.StateChanged += SetContent;
+        base.OnInitialized();
+    }
+
+    private void SetContent(object sender, ArticleState state)
+    {
+        if (state.CurrentArticle != null)
+        {
+            articleTitle = state.CurrentArticle.Title;
+            articleContent = string.Join("", state.CurrentWords);
+        }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        ArticleState.StateChanged -= SetContent;
+        base.Dispose(disposing);
     }
 }

@@ -1,8 +1,9 @@
-﻿@inject IState<DevModeState> DevModeState
+﻿@namespace Client.Components.Common
+@inject IState<DevModeState> DevModeState
 @inject IState<CourseState> CourseState
 @inject IDispatcher Dispatcher
 
-<DropTarget T="RecordMainInfoViewModel" Drop="(record) => Dispatcher.Dispatch(new MoveDevCourseRecordAction(record, null, Record))">
+<DropTarget T="RecordMainInfoViewModel" Drop="(record) => Dispatcher.Dispatch(new MoveCourseRecordAction(record, null, Record))">
     <Draggable Data="Record">
         <div class=@("node-content" + (ActiveRecords.Any(r => r.Id == Record.Id) ? " active" : ""))>
             <NavLink class="node-content-title" href=@($"/courses/{CourseState.Value.CurrentCourse.Id}/{Record.TargetId}")>
@@ -12,7 +13,7 @@
             @if (DevModeState.Value.Enabled)
             {
                 <TreeViewItemMenuComponent WithEditing="false" WithAdding="false"
-                                           OnDelete="() => Dispatcher.Dispatch(new RemoveDevCourseRecordAction(Record))" />
+                                           OnDelete="() => Dispatcher.Dispatch(new RemoveCourseRecordAction(Record))" />
             }
         </div>
     </Draggable>

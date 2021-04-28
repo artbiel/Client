@@ -41,4 +41,10 @@ namespace Client.Store
         CourseStructure,
         HistoryBranch
     }
+
+    public enum ArticleSidebarHistoryTab
+    {
+        Course,
+        Article
+    }
 }

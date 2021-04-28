@@ -9,7 +9,7 @@ namespace Client.Services
 {
     public class CourseService
     {
-        private const string key = "course_";
+        private const string devKey = "course_dev_";
 
         private readonly ILocalStorageService _localStorageService;
 
@@ -18,10 +18,32 @@ namespace Client.Services
             _localStorageService = localStorageService;
         }
 
-        public async Task<CourseFullInfoViewModel> GetCourse(int id, bool offlineMode = false)
+        public async Task<CourseFullInfoViewModel> GetCourse(int id, bool devMode)
         {
-            var course = GetExample();
-            return course;
+            if (devMode)
+            {
+                if (await _localStorageService.ContainKeyAsync(devKey + id))
+                {
+                    return await _localStorageService.GetItemAsync<CourseFullInfoViewModel>(devKey + id);
+                }
+                else
+                {
+                    if (id == 1)
+                    {
+                        var course = GetExample();
+                        await SaveCourseToLocalStorage(course);
+                        return course;
+                    }
+                }
+            }
+            if (id == 1)
+                return GetExample();
+            return null;
+        }
+
+        public async Task SaveCourseToLocalStorage(CourseFullInfoViewModel course)
+        {
+            await _localStorageService.SetItemAsync(devKey + course.Id, course);
         }
 
         private CourseFullInfoViewModel GetExample()

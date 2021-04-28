@@ -1,5 +1,5 @@
-﻿@inject IState<DevModeState> DevModeState
-@inject IState<CourseDevState> CourseDevState
+﻿@namespace Client.Components.Common
+@inject IState<DevModeState> DevModeState
 @inject IDispatcher Dispatcher
 
 @if (isEditing)
@@ -8,7 +8,7 @@
 }
 else
 {
-    <DropTarget T="RecordMainInfoViewModel" Drop="(record) => Dispatcher.Dispatch(new MoveDevCourseRecordAction(record, Record, null))">
+    <DropTarget T="RecordMainInfoViewModel" Drop="(record) => Dispatcher.Dispatch(new MoveCourseRecordAction(record, Record, null))">
         <Draggable Data="Record">
             <div class="node-content group">
                 <div class="node-content-title" @onclick="ToggleDisplay">
@@ -18,7 +18,7 @@ else
                 @if (DevModeState.Value.Enabled)
                 {
                     <TreeViewItemMenuComponent OnAdd="() => isAdding = true" OnEdit="() => isEditing = true"
-                                               OnDelete="() => Dispatcher.Dispatch(new RemoveDevCourseRecordAction(Record))"
+                                               OnDelete="() => Dispatcher.Dispatch(new RemoveCourseRecordAction(Record))"
                                                WithEditing="Record.Type != RecordType.Root"
                                                WithDeleting="Record.Type !=RecordType.Root" />
                 }
@@ -42,9 +42,9 @@ else
 </div>
 @if (DevModeState.Value.Enabled && Record.Type == RecordType.Group)
 {
-    <DropTarget T="RecordMainInfoViewModel" Drop="(record) => Dispatcher.Dispatch(new MoveDevCourseRecordAction(record, null, Record))">
+    <DropTarget T="RecordMainInfoViewModel" Drop="(record) => Dispatcher.Dispatch(new MoveCourseRecordAction(record, null, Record))">
         <div class="node-content node-content-title">
-            <span style="margin-left: 8px">@($"</{Record.Name}>")</span>
+            <span>@($"</{Record.Name}>")</span>
         </div>
     </DropTarget>
 }
@@ -68,20 +68,19 @@ else
 
     private void AddRecord(RecordMainInfoViewModel record)
     {
-        Console.WriteLine(record.Name);
-        Dispatcher.Dispatch(new AddDevCourseRecordAction(record, Record));
+        Dispatcher.Dispatch(new AddCourseRecordAction(record, Record));
         isAdding = false;
     }
 
     private void EditRecord(string Name)
     {
         Record.Name = Name;
-        Dispatcher.Dispatch(new EditDevCourseRecordAction(Record));
+        Dispatcher.Dispatch(new EditCourseRecordAction(Record));
         isEditing = false;
     }
 
     protected override void OnParametersSet()
     {
-        Display = ActiveRecords.Any(r => r.Id == Record.Id) || Display;
+        Display |= ActiveRecords.Any(r => r.Id == Record.Id);
     }
 }
