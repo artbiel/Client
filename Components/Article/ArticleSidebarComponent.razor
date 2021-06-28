@@ -1,81 +1,108 @@
 ﻿@inherits FluxorComponent
 @inject IState<ArticleState> ArticleState
 @inject IState<CourseState> CourseState
-@inject IState<DevModeState> DevModeState
 @inject IDispatcher Dispatcher
 
 <RightSideBarComponent>
-    @if (!ArticleState.Value.IsLoading)
+    <MBTabBar @bind-Value="CurrentTab"
+              Context="item"
+              Items="@TabNames"
+              StackIcons="StackIcons"
+              style="margin: 2px; ">
+        <Label>
+            @item
+        </Label>
+    </MBTabBar>
+    @*@if (CurrentTab == (int)ArticleSidebarTab.History && ArticleState.Value.CurrentArticle != null)
     {
-        <div class="article-nav">
-            <ArticleSidebarButtonComponent IsActive="CurrentTab == ArticleSidebarTab.CourseStructure"
-                                           OnTabChanged="() => ChangeTab(ArticleSidebarTab.CourseStructure)">
-                <i class="fa fa-folder"></i><span>Structure</span>
-            </ArticleSidebarButtonComponent>
-            <ArticleSidebarButtonComponent IsActive="CurrentTab == ArticleSidebarTab.HistoryBranch"
-                                           OnTabChanged="() => ChangeTab(ArticleSidebarTab.HistoryBranch)">
-                <i class="fa fa-code-fork"></i><span>History</span>
-            </ArticleSidebarButtonComponent>
-        </div>
-        if (CurrentTab == ArticleSidebarTab.HistoryBranch && ArticleState.Value.CurrentArticle != null)
-        {
-            <div class="article-nav" style="border-bottom: 1px solid silver">
-                <ArticleSidebarHistoryTabComponent CurrentTab="HistoryTab"
-                                                   OnTabChanged="() => ChangeHistoryTab(HistoryTab == ArticleSidebarHistoryTab.Article ?
-                                                                 ArticleSidebarHistoryTab.Course : ArticleSidebarHistoryTab.Article)">
-                </ArticleSidebarHistoryTabComponent>
-            </div>
-        }
+        <MBSelect @bind-Value="HistoryTab"
+                  style="width: 100%"
+                  Items="HistoryTabValues"
+                  ItemValidation="@MBItemValidation.NoSelection"
+                  Density="MBDensity.Minus3"
+                  TextAlignStyle="MBTextAlignStyle.Center"
+                  MenuSurfacePositioning="MBMenuSurfacePositioning.FullWidth" />
+    }*@
 <div class="article-sidebar-body">
     @switch (CurrentTab)
     {
-        case ArticleSidebarTab.CourseStructure:
-            <TreeViewComponent Records="CourseState.Value.CurrentCourse.Records"
+        case (int)ArticleSidebarTab.Structure:
+            <TreeViewComponent RootRecord="CourseState.Value.CurrentCourse.RootRecord"
                                ActiveRecords="CourseState.Value.ActiveRecords" FontSize="17px" />
             break;
-        case ArticleSidebarTab.HistoryBranch:
+        case (int)ArticleSidebarTab.History:
             switch (HistoryTab)
             {
                 case ArticleSidebarHistoryTab.Article:
-                    <HistoryBranchComponent Commits="ArticleState.Value.CurrentArticle?.Commits?.Reverse<ArticleCommitViewModel>().ToList()"
-                                            ActiveCommit="ArticleState.Value.CurrentCommit" />
+                    <HistoryBranchComponent Commits="ArticleState.Value.Commits?.Reverse<BaseCommit>().ToList()"
+                                            ActiveCommitId="ArticleState.Value.CurrentArticle.CurrentCommitId"
+                                            SetActiveCommit="(commit) => Dispatcher.Dispatch(new SetCurrentArticleCommitAction(commit.Id))"
+                                            GetIcon="GetArticleHistoryItemIcon" />
                     break;
-                case ArticleSidebarHistoryTab.Course:
-                   <h1>Тёмыч Петух</h1>
-                    break;
+
+                @*case ArticleSidebarHistoryTab.Course:
+                    <HistoryBranchComponent Commits="CourseState.Value.Commits?.Reverse<BaseCommit>().ToList()"
+                                            ActiveCommit="CourseState.Value.Commits?.First()"
+                                            SetActiveCommit="(commit) => Dispatcher.Dispatch(new SetCurrentArticleCommitAction(commit.Id))"
+                                            GetIcon="GetCourseHistoryItemIcon" />
+                    break;*@
             }
             break;
     }
 </div>
-    }
 </RightSideBarComponent>
 
 <style>
     .article-nav {
-            padding: 0;
-            margin: 0;
-            display: flex;
-            width: 100%;
-            height: 40px;
-            }
+        padding: 0;
+        margin: 0;
+        display: flex;
+        width: 100%;
+        height: 40px;
+    }
 
     .article-sidebar-body {
-            height: calc(100vh - 90px);
-                overflow-y: auto;
-            }
+        height: calc(100vh - 90px);
+        overflow-y: auto;
+    }
 </style>
 
 @code{
-    private ArticleSidebarTab CurrentTab = ArticleSidebarTab.CourseStructure;
+
+    private bool StackIcons { get; set; } = false;
+    private int CurrentTab { get; set; } = (int)ArticleSidebarTab.Structure;
+    private string[] TabNames { get; set; } = Enum.GetNames<ArticleSidebarTab>();
+
     private ArticleSidebarHistoryTab HistoryTab = ArticleSidebarHistoryTab.Article;
+    MBSelectElement<ArticleSidebarHistoryTab>[] HistoryTabValues = Enum.GetValues<ArticleSidebarHistoryTab>()
+        .Select(v => new MBSelectElement<ArticleSidebarHistoryTab> { Label = Enum.GetName(v), SelectedValue = v }).ToArray();
 
     private void ChangeTab(ArticleSidebarTab tab)
     {
-        CurrentTab = tab;
+        CurrentTab = (int)tab;
     }
 
     private void ChangeHistoryTab(ArticleSidebarHistoryTab tab)
     {
         HistoryTab = tab;
     }
+
+    private string GetArticleHistoryItemIcon(BaseCommit commit) =>
+        (commit as ArticleCommitMainInfoVM).Type switch
+        {
+            ArticleCommitType.Correction => "edit",
+            ArticleCommitType.Addition => "add",
+            ArticleCommitType.Typo => "title",
+            ArticleCommitType.VersionChanged => "fiber_new",
+            _ => ""
+        };
+
+    private string GetCourseHistoryItemIcon(BaseCommit commit) =>
+      (commit as CourseCommitMainInfoVM).Type switch
+      {
+          CourseCommitType.Changed => "edit",
+          CourseCommitType.Added => "add",
+          CourseCommitType.Deleted => "delete",
+          _ => ""
+      };
 }

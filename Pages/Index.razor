@@ -1,42 +1,25 @@
 ﻿@page "/"
+@inject HttpClient HttpClient
+<AuthorizeView>
+    @foreach (var claim in Claims)
+    {
+        <li>@claim.Type: @claim.Value</li>
+    }
+</AuthorizeView>
 
-<h1>Hello, world!</h1>
+@code{ 
+    List<System.Security.Claims.Claim> Claims = new();
 
-    Welcome to your new app.
-
-<SurveyPrompt Title="How is Blazor working for you111111111111111111111111111111111111111111111111111111111111111111111111?" />
-
-
-<h1>Hello, world!</h1>
-
-    Welcome to your new app.
-
-<SurveyPrompt Title="How is Blazor working for you?" />
-
-
-<h1>Hello, world!</h1>
-
-    Welcome to your new app.
-
-<SurveyPrompt Title="How is Blazor working for you?" />
-
-
-<h1>Hello, world!</h1>
-
-    Welcome to your new app.
-
-<SurveyPrompt Title="How is Blazor working for you?" />
-
-
-<h1>Hello, world!</h1>
-
-    Welcome to your new app.
-
-<SurveyPrompt Title="How is Blazor working for you?" />
-
-
-<h1>Hello, world!</h1>
-
-    Welcome to your new app.
-
-<SurveyPrompt Title="How is Blazor working for you?" />
+    protected async override Task OnParametersSetAsync()
+    {
+        //var requestMessage = new HttpRequestMessage()
+        //{
+        //    Method = new HttpMethod("GET"),
+        //    RequestUri = new Uri("https://localhost:7001/identity"),
+        //};
+        //requestMessage.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+        //Claims = await HttpClient.SendAsync(requestMessage)
+        //.Result.Content.ReadFromJsonAsync<List<System.Security.Claims.Claim>>();
+        await base.OnParametersSetAsync();
+    }
+}

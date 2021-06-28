@@ -1,0 +1,31 @@
+﻿@inject NavigationManager NavigationManager
+
+<MBCard AutoStyled="true"
+        @onclick="@(() => NavigationManager.NavigateTo($"/workbanch/{Enum.GetName(Item.Type).ToLower()}/{Item.Id}"))"
+        class="mb-ui-control">
+    <PrimaryAction>
+        <div class="mdc-card__media mdc-card__media--square mb-card__media" style="display: flex; align-items: center; justify-content: center;">
+            <MBIcon IconName="@(Item.Type == WorkbanchItemType.Course ? "folder" : "article")" style="font-size: 50px; " />
+        </div>
+        <div class="mb-card__autostyled d-flex justify-content-between align-items-center flex-wrap" style="width: 100%;">
+            <div>
+                <h2 class="mb-card__title mdc-typography mdc-typography--headline6">@Item.Title</h2>
+                <h3 class="mb-card__subtitle mdc-typography mdc-typography--subtitle2">@Enum.GetName(Item.Type)</h3>
+            </div>
+            <div @onclick:stopPropagation="true">
+                <MBIconButton Icon="delete"
+                              @onclick="async () => { DeleteItemDialog.SetItem(Item); await DeleteItemDialog.ShowAsync(); }" />
+            </div>
+        </div>
+    </PrimaryAction>
+</MBCard>
+
+
+<DeleteWorkbanchItemDialogComponent @ref="DeleteItemDialog" />
+
+@code {
+    [Parameter]
+    public WorkbanchItemVM Item { get; set; }
+
+    private DeleteWorkbanchItemDialogComponent DeleteItemDialog;
+}

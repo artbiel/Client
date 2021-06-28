@@ -1,0 +1,52 @@
+﻿@namespace Client.Components.Common
+@inject IDispatcher Dispatcher
+
+
+<MBConfirmationDialog ActionPhrase="to delete record"
+                      @ref="@ConfirmationDialog"
+                      Title="Delete Record" ConfirmationPhrase="@Record?.Title">
+    <Body>
+        <p>Are you sure want to delete @(Record != null ? Enum.GetName(Record.Type).ToLower() : "") "@Record?.Title"?</p>
+    </Body>
+    <UnconfirmedButtons>
+        <MBButton DialogAction="delete"
+                  Label="Delete"
+                  Disabled="true"
+                  LeadingIcon="delete" />
+        <MBButton DialogAction="cancel"
+                  Label="Cancel"
+                  LeadingIcon="close" />
+    </UnconfirmedButtons>
+    <ConfirmedButtons>
+        <MBButton DialogAction="delete"
+                  Label="Delete"
+                  LeadingIcon="delete"
+                  @onclick="Submit" />
+        <MBButton DialogAction="cancel"
+                  Label="Cancel"
+                  LeadingIcon="close" />
+    </ConfirmedButtons>
+</MBConfirmationDialog>
+
+
+@code {
+    private RecordVM Record { get; set; }
+
+    private MBConfirmationDialog ConfirmationDialog;
+
+    private void Submit()
+    {
+        Dispatcher.Dispatch(new RemoveWorkbanchCourseRecordAction(Record));
+    }
+
+    public void SetItem(RecordVM record)
+    {
+        Record = record;
+        StateHasChanged();
+    }
+
+    public async Task ShowAsync()
+    {
+        await ConfirmationDialog.ShowAsync();
+    }
+}

@@ -1,30 +1,78 @@
 ﻿@page "/courses"
+@inherits FluxorComponent
+@inject IState<CoursesState> CoursesState
+@inject NavigationManager NavigationManager
+@inject IDispatcher Dispatcher
 
-<h1>Все курсы</h1>
+<div class="mdc-layout-grid">
+    <div class="mdc-layout-grid__inner">
+        <div class="mdc-layout-grid__cell--span-12 d-flex justify-content-between align-items-center flex-wrap">
+            <h1 class="mdc-typography--headline2">Courses</h1>
+            @*<MBButton ButtonStyle="MBButtonStyle.ContainedUnelevated" LeadingIcon="add" class="mdc-theme--on-primary mdc-theme--primary-bg" Label="Create"
+                      @onclick="async () => await NewCourseDialog.ShowAsync()" />*@
+        </div>
+        <MBDebouncedTextField Value="@CoursesState.Value.SearchString"
+                              ValueChanged="(string val) => Dispatcher.Dispatch(new SetCoursesSearchStringAction(val))"
+                              class="mdc-layout-grid__cell--span-12"
+                              DebounceInterval="@debouncedInterval"
+                              Label="Search"
+                              TextInputStyle="MBTextInputStyle.Outlined"
+                              Density="MBDensity.Comfortable" />
+        @*<MBSelect Value="@CoursesState.Value.SearchType"
+                  ValueChanged="(CourseSearchType type) => Dispatcher.Dispatch(new SetCoursesSearchTypeAction(type))"
+                  class="mdc-layout-grid__cell--span-2"
+                  Items="SearchTypeValues"
+                  ItemValidation="@MBItemValidation.NoSelection"
+                  Density="MBDensity.Comfortable"
+                  SelectInputStyle="MBSelectInputStyle.Outlined" />*@
 
-<div class="row" style="margin: 10px 0;">
-    <div class="col-4" style="padding: 0">
-        <RadzenAutoComplete Placeholder="Search..."></RadzenAutoComplete>
     </div>
 </div>
-
-@foreach (var item in courses)
+@if (CoursesState.Value.IsLoading)
 {
-    <hr />
-    <NavLink href=@("/courses/" + item.Id)>
-        <div class="course-item">
-            <div class="course-head">
-                <img src="@item.ImgSrc" />
-                <span class="course-title">
-                    @item.Name
-                </span>
-            </div>
-            <div class="course-tail">
-                <span>Difficulty:&nbsp; @item.Name</span>
+    <LoadingComponent />
+}
+else
+{
+    if (CoursesState.Value.Courses == null)
+    {
+        <NotFoundComponent />
+    }
+    else
+    {
+        <div class="mdc-layout-grid">
+            <div class="mdc-layout-grid__inner">
+                @if (CoursesState.Value.Courses.Count > 0)
+                {
+                    @foreach (var course in CoursesState.Value.Courses)
+                    {
+                        <div class="mdc-layout-grid__cell--span-4">
+                            <MBCard AutoStyled="true"
+                                    class="mb-basic-with-text-over-media"
+                                    @onclick="@(() => NavigationManager.NavigateTo($"courses/{course.Id}"))">
+                                <PrimaryAction>
+                                    <div class="mdc-card__media mdc-card__media--16-9 mb-card__media" style=@($"background-image: url('{course.ImgSrc}')")></div>
+                                    <div class="mb-card__autostyled">
+                                        <h2 class="mb-card__title mdc-typography mdc-typography--headline6">@course.Title</h2>
+                                    </div>
+                                    @*<div class="mb-card__secondary mdc-typography mdc-typography--body2">@course.ShortDescription</div>*@
+                                </PrimaryAction>
+                            </MBCard>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="mdc-layout-grid__cell--span-12">
+                        <NotFoundComponent />
+                    </div>
+                }
             </div>
         </div>
-    </NavLink>
+    }
 }
+
+<NewCourseDialogComponent @ref="NewCourseDialog"/>
 
 <style>
 
@@ -80,78 +128,16 @@
     [CascadingParameter(Name = "Theme")]
     public Theme Theme { get; set; }
 
-    public class Course
+    private NewCourseDialogComponent NewCourseDialog;
+
+    private int debouncedInterval = 500;
+
+    MBSelectElement<CourseSearchType>[] SearchTypeValues = Enum.GetValues<CourseSearchType>()
+        .Select(v => new MBSelectElement<CourseSearchType> { Label = Enum.GetName(v), SelectedValue = v }).ToArray();
+
+    protected override void OnInitialized()
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string ShortDescription { get; set; }
-        public string ImgSrc { get; set; }
-    }
-
-    static List<CourseMainInfoViewModel> courses = new List<CourseMainInfoViewModel>
-{
-        new CourseMainInfoViewModel
-        {
-            Id = 1,
-            Name = "Основы C#",
-            ShortDescription = "В данном курсе вы ознакомитесь с основами языка C# и платформы .NET",
-            ImgSrc = "https://www.secretorange.co.uk/media/TagImage/c-sharp.png"
-        },
-        new CourseMainInfoViewModel
-        {
-            Id = 1,
-            Name = "Основы C#",
-            ShortDescription = "В данном курсе вы ознакомитесь с основами языка C# и платформы .NET",
-            ImgSrc = "https://www.secretorange.co.uk/media/TagImage/c-sharp.png"
-        },
-        new CourseMainInfoViewModel
-        {
-            Id = 1,
-            Name = "Основы C#",
-            ShortDescription = "В данном курсе вы ознакомитесь с основами языка C# и платформы .NET",
-            ImgSrc = "https://www.secretorange.co.uk/media/TagImage/c-sharp.png"
-
-        },
-        new CourseMainInfoViewModel
-        {
-            Id = 1,
-            Name = "Основы C#",
-            ShortDescription = "В данном курсе вы ознакомитесь с основами языка C# и платформы .NET",
-            ImgSrc = "https://www.secretorange.co.uk/media/TagImage/c-sharp.png"
-        },
-        new CourseMainInfoViewModel
-        {
-            Id = 1,
-            Name = "Основы C#",
-            ShortDescription = "В данном курсе вы ознакомитесь с основами языка C# и платформы .NET",
-            ImgSrc = "https://www.secretorange.co.uk/media/TagImage/c-sharp.png"
-        },
-        new CourseMainInfoViewModel
-        {
-            Id = 1,
-            Name = "Основы C#",
-            ShortDescription = "В данном курсе вы ознакомитесь с основами языка C# и платформы .NET",
-            ImgSrc = "https://www.secretorange.co.uk/media/TagImage/c-sharp.png"
-        },
-        new CourseMainInfoViewModel
-        {
-            Id = 1,
-            Name = "Основы C#",
-            ShortDescription = "В данном курсе вы ознакомитесь с основами языка C# и платформы .NET",
-            ImgSrc = "https://www.secretorange.co.uk/media/TagImage/c-sharp.png"
-        },
-    };
-
-    public class MySelectModel
-    {
-        public int MyValueField { get; set; }
-        public string MyTextField { get; set; }
-    }
-
-    object selectedSearchValue { get; set; }
-
-    void MySearchHandler(object newValue)
-    {
-        selectedSearchValue = newValue;
+        Dispatcher.Dispatch(new FetchCoursesItemsAction(CoursesState.Value.SearchString, CoursesState.Value.SearchType));
+        base.OnInitialized();
     }
 }

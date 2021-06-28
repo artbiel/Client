@@ -1,62 +1,26 @@
 ﻿@page "/test"
-<style>
-    .draggable {
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        margin: 1rem;
-        padding: 1rem;
-        display: inline-block;
-        cursor: move;
-    }
+@inherits FluxorComponent
 
-    .drop-target {
-        border: 1px dashed #ebebeb;
-        margin: 1rem;
-        padding: 1rem;
-        display: inline-block;
-    }
-</style>
+<MBTabBar @bind-Value="@CurrentTab"
+          Context="item"
+          Items="@TabNames"
+          StackIcons="@StackIcons"
+          style="margin: 6px; ">
 
-<Draggable Data="@draggableDataA">
-    <div class="draggable">
-        Draggable A
-    </div>
-</Draggable>
+    <Icon>
+        @{ var name = "fa-" + item; }
+        <MBIcon IconFoundry="MBIconHelper.FAFoundry()"
+                IconName="@name" />
+    </Icon>
 
-<Draggable Data="@draggableDataB">
-    <div class="draggable">
-        Draggable B
-    </div>
-</Draggable>
+    <Label>
+        @item
+    </Label>
+</MBTabBar>
 
-<DropTarget T="String" Drop="@OnDrop">
-    <div class="drop-target">
-        Accepts Draggable A or B
-    </div>
-</DropTarget>
-
-@if (dropMessage != null)
-{
-    @dropMessage
-}
-
-<DropTarget T="String" Zone="DropZone">
-    <div class="drop-target">
-        Can't drop here
-    </div>
-</DropTarget>
 
 @code {
-    string draggableDataA = "Draggable Data A";
-    string draggableDataB = "Draggable Data B";
-
-    string dropMessage = null;
-
-    void OnDrop(string data)
-    {
-        dropMessage = $"Dropped: {data}";
-
-        // Important: Invoke StateHasChanged() to update the page
-        StateHasChanged();
-    }
+    private bool StackIcons { get; set; } = false;
+    private int CurrentTab { get; set; } = (int)ArticleSidebarTab.Structure;
+    private string[] TabNames { get; set; } = Enum.GetNames<ArticleSidebarTab>();
 }

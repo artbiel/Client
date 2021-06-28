@@ -1,11 +1,21 @@
 ﻿@inherits FluxorComponent
 @inject IState<ArticleState> ArticleState
+@inject IState<CourseState> CourseState
 @inject DialogService DialogService
 @inject IDispatcher Dispatcher
-@*<EditForm Model="@articleTitle">
-        <InputText @bind-Value="@articleTitle" class="article-title-edit" />
-    </EditForm>*@
-<RadzenHtmlEditor @bind-Value="articleContent" Execute="OnExecute" UploadUrl="upload/image" class="article-content-edit" Change="OnChange">
+@inject NavigationManager NavigationManager
+
+<div class="d-flex justify-content-between align-items-center flex-wrap">
+    <h1 class="mdc-typography--headline3">@ArticleState.Value.CurrentArticle.Title</h1>
+    <div style="display: flex; flex-wrap: wrap">
+        <MBButton ButtonStyle="MBButtonStyle.ContainedUnelevated" class="mdc-theme--on-primary mdc-theme--primary-bg" Label="Commit" style="margin-right: 7px;" @onclick="AddCommit" />
+        <MBButton ButtonStyle="MBButtonStyle.ContainedUnelevated" class="mdc-theme--on-primary mdc-theme--primary-bg" Label="Open in Workbanch" style="margin-right: 5px;"
+                  @onclick="OpenInWorkbanch" />
+        <MBButton ButtonStyle="MBButtonStyle.ContainedUnelevated" LeadingIcon="arrow_back" class="mdc-theme--on-secondary mdc-theme--secondary-bg" Label="To Article"
+                  @onclick="@(() => NavigationManager.NavigateTo($"/courses/{CourseState.Value.CurrentCourse.Id}/{ArticleState.Value.CurrentArticle.Id}"))" />
+    </div>
+</div>
+<RadzenHtmlEditor @bind-Value="articleContent" Execute="OnExecute" UploadUrl="upload/image" class="mdc-typography--body1" Style="margin-bottom: 30px; min-height: 60vh; max-height: calc(100vh - 240px); padding: 2px;"  Change="OnChange">
     <RadzenHtmlEditorUndo />
     <RadzenHtmlEditorRedo />
     <RadzenHtmlEditorSeparator />
@@ -14,22 +24,20 @@
     <RadzenHtmlEditorUnderline />
     <RadzenHtmlEditorStrikeThrough />
     <RadzenHtmlEditorSeparator />
-    <RadzenHtmlEditorImage />
-    <RadzenHtmlEditorLink />
-    <RadzenHtmlEditorUnlink />
-    <RadzenHtmlEditorSeparator />
-    <RadzenHtmlEditorFormatBlock />
-    <RadzenHtmlEditorCustomTool CommandName="SaveContent" Icon="save_file" Title="Save" />
 </RadzenHtmlEditor>
 
+<NewCommitDialogComponent @ref="NewCommitDialog" ArticleId="ArticleState.Value.CurrentArticle.Id"
+                          PrevCommitId="ArticleState.Value.CurrentArticle.CurrentCommitId"
+                          Content="@articleContent"/>
+
 <style>
-    .rz-dialog{
+    .rz-dialog {
         width: 100vw;
         height: 100%;
         max-width: 100vw;
     }
 
-    .rz-html-editor-toolbar{
+    .rz-html-editor-toolbar {
         position: sticky;
         top: 50px;
     }
@@ -41,7 +49,6 @@
         font-weight: bold;
         border: none;
         width: 100%;
-        background-color: @Theme.BackgroundOptions.Body;
         margin: 0 0 0.5rem 0;
     }
 
@@ -60,37 +67,37 @@
         string articleTitle = "";
         string articleContent = "";
 
-        async Task OnExecute(HtmlEditorExecuteEventArgs args)
+
+    private NewCommitDialogComponent NewCommitDialog;
+
+    async Task OnExecute(HtmlEditorExecuteEventArgs args)
+    {
+        if (args.CommandName == "SaveContent")
         {
-            if (args.CommandName == "SaveContent")
-            {
-                await args.Editor.ExecuteCommandAsync(HtmlEditorCommands.InsertHtml, "");
-                Dispatcher.Dispatch(new SaveArticleContentAction(ArticleState.Value.CurrentArticle.Id,
-                    ArticleState.Value.CurrentCommit.Id, articleContent));
-            }
+            await args.Editor.ExecuteCommandAsync(HtmlEditorCommands.InsertHtml, "");
+            Dispatcher.Dispatch(new SaveArticleContentAction(ArticleState.Value.CurrentArticle.Id,
+                ArticleState.Value.CurrentArticle.CurrentCommitId, articleContent));
         }
+    }
 
-        private void OnChange(string arg)
+    private void OnChange(string arg)
+    {
+        Console.WriteLine(arg.Replace("><", "> <"));
+    }
+
+    async Task InsertImageFromList(RadzenHtmlEditor editor)
+    {
+        await editor.SaveSelectionAsync();
+
+        var result = await DialogService.OpenAsync<HtmlEditorImgUploadComponent>("Select image file");
+
+        await editor.RestoreSelectionAsync();
+
+        if (result != null)
         {
-            Console.WriteLine(arg.Replace("><", "> <"));
+            await editor.ExecuteCommandAsync(HtmlEditorCommands.InsertHtml, $"<img style=\"max-width: 100%\" src=\"{result}\">");
         }
-
-        [CascadingParameter(Name = "Theme")]
-        public Theme Theme { get; set; }
-
-        async Task InsertImageFromList(RadzenHtmlEditor editor)
-        {
-            await editor.SaveSelectionAsync();
-
-            var result = await DialogService.OpenAsync<HtmlEditorImgUploadComponent>("Select image file");
-
-            await editor.RestoreSelectionAsync();
-
-            if (result != null)
-            {
-                await editor.ExecuteCommandAsync(HtmlEditorCommands.InsertHtml, $"<img style=\"max-width: 100%\" src=\"{result}\">");
-            }
-        }
+    }
 
     protected override void OnInitialized()
     {
@@ -99,12 +106,30 @@
         base.OnInitialized();
     }
 
+    private async Task AddCommit()
+    {
+        await NewCommitDialog.ShowAsync();
+    }
+
+    private void OpenInWorkbanch()
+    {
+        var article = new WorkbanchArticleVM
+        {
+            Id = ArticleState.Value.CurrentArticle.Id,
+            CourseId = CourseState.Value.CurrentCourse.Id,
+            Title = ArticleState.Value.CurrentArticle.Title,
+            Content = articleContent
+        };
+        Dispatcher.Dispatch(new ForkItemToWorkbanchAction(article, WorkbanchItemType.Article));
+        NavigationManager.NavigateTo($"/workbanch/article/{ArticleState.Value.CurrentArticle.Id}");
+    }
+
     private void SetContent(object sender, ArticleState state)
     {
         if (state.CurrentArticle != null)
         {
             articleTitle = state.CurrentArticle.Title;
-            articleContent = string.Join("", state.CurrentWords);
+            articleContent = state.CurrentArticle.Content;
         }
     }
 

@@ -1,0 +1,89 @@
+﻿@inject IDispatcher Dispatcher
+
+@if (Application != null)
+{
+    <MBCard AutoStyled="true"
+            class="mb-ui-control"
+            style="margin-bottom: 10px;">
+        <Primary>
+            <div class="mb-card__autostyled" style="width: 100%;">
+                <div class="mdc-layout-grid">
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;" class="mdc-layout-grid__cell--span-12">
+                        <MBIcon IconName="@GetIcon(Application.Type)" style=" font-size: 40px; margin-right: 15px;" />
+                        <h2 class="mb-card__title mdc-typography mdc-typography--headline4">@Application.Title</h2>
+                    </div>
+                    <div class="mdc-layout-grid__cell--span-12 mb-card__subtitle mdc-typography mdc-typography--overline">
+                        Status: <span style="color: @GetColor(Application.Status)">@Enum.GetName(Application.Status)</span>
+                    </div>
+                    <div class="mdc-layout-grid__cell--span-12 mdc-typography">
+                        <span class="mb-card__subtitle mdc-typography--overline">Description: </span>
+                        <span class="mdc-typography--body1">@Application.Description</span>
+                    </div>
+                </div>
+            </div>
+        </Primary>
+    </MBCard>
+
+    <MBCard AutoStyled="true"
+            class="mb-ui-control">
+        <Primary>
+            <div class="mb-card__autostyled" style="width: 100%;">
+                <div class="mdc-layout-grid">
+                    <div class="mdc-layout-grid__inner">
+                        <div class="mdc-layout-grid__cell--span-12 mdc-typography mdc-typography--headline5">Comments</div>
+                        <div class="mdc-layout-grid__cell--span-12">
+                            <MBButton ButtonStyle="MBButtonStyle.Outlined" Label="Add Comment"
+                                      Density="MBDensity.Minus1" @onclick="async () => { await NewCommentDialog.ShowAsync(); }" />
+                        </div>
+                        <div class="mdc-layout-grid__cell--span-12">
+                            @if (Application?.Comments?.Count > 0)
+                            {
+                                foreach (var comment in Application.Comments.Reverse<CommentVM>())
+                                {
+                                    <CommentComponent Comment="comment"
+                                                      OnNewCommentAdded="(newComment) => Dispatcher.Dispatch(new AddApplicationCommentAction(newComment.Content, Application.Id, newComment.ParentId))" />
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Primary>
+    </MBCard>
+}
+else
+{<MBCard AutoStyled="true"
+         class="mb-ui-control">
+        <Primary>
+            <div class="mdc-layout-grid__cell--span-12 mdc-typography mdc-typography--headline3" style="text-align: center">
+                Select Application
+            </div>
+        </Primary>
+    </MBCard>
+}
+
+<NewCommentDialogComponent @ref="NewCommentDialog"
+                           OnCommentAdded="(newComment) => { Dispatcher.Dispatch(new AddApplicationCommentAction(newComment.Content, Application.Id, newComment.ParentId)); }" />
+
+@code {
+    [Parameter]
+    public SupportApplicationFullInfoVM Application { get; set; }
+
+    private NewCommentDialogComponent NewCommentDialog;
+
+    private string GetIcon(SupportApplicationType type) => type switch
+    {
+        SupportApplicationType.Proposal => "light_mode",
+        SupportApplicationType.Bug => "bug_report",
+        SupportApplicationType.Question => "help_outline",
+        _ => ""
+    };
+
+    private string GetColor(SupportApplicationStatus status) => status switch
+    {
+        SupportApplicationStatus.Waiting => "orange",
+        SupportApplicationStatus.Processing => "green",
+        SupportApplicationStatus.Completed => "gray",
+        _ => ""
+    };
+}

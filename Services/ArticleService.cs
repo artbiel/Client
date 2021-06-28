@@ -1,4 +1,5 @@
 ﻿using Blazored.LocalStorage;
+using Client.Infrastructure;
 using Client.Models;
 using DiffPlex.Model;
 using System;
@@ -10,8 +11,7 @@ namespace Client.Services
 {
     public class ArticleService
     {
-        private const string devKey = "article_dev_";
-        private const string tempContentKey = "article_dev_temp_content_";
+        private const string key = "article_commit_";
 
         private ILocalStorageService _localStorageService;
         private CourseService _courseService;
@@ -22,93 +22,155 @@ namespace Client.Services
             _courseService = courseService;
         }
 
-        public async Task<ArticleViewModel> GetArticle(int id, bool devMode)
+        public async Task<ArticleAggregatedVM> GetArticle(Guid id, Guid? commitId)
         {
-            if (devMode)
+            //if (devMode)
+            //{
+            //    if (await _localStorageService.ContainKeyAsync(devKey + id))
+            //    {
+            //        var article = await _localStorageService.GetItemAsync<ArticleViewModel>(devKey + id);
+            //        return ArticleConverter.FromStorage(article);
+            //    }
+            //    else
+            //    {
+            //        if ((await _courseService.GetCourse(1, devMode)).Records.Any(r => r.TargetId == id))
+            //        {
+            //            var article = GetExample(id);
+            //            await AddArticleToLocalStorage(ArticleConverter.ToStorage(article));
+            //            return article;
+            //        }
+            //    }
+            //}
+            if (await _localStorageService.ContainKeyAsync("workbanch_" + id))
             {
-                if (await _localStorageService.ContainKeyAsync(devKey + id))
+                var commit1 = new ArticleCommitMainInfoVM
                 {
-                    var article = await _localStorageService.GetItemAsync<ArticleViewModel>(devKey + id);
-                    return ArticleConverter.FromStorage(article);
-                }
-                else
+                    Id = new Guid(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }),
+                    Title = "Created",
+                    CreatedAt = new DateTime(2021, 05, 15, 22, 23, 22),
+                    CreatedBy = "artbiel",
+                    Description = "Article created",
+                    CommitState = CommitState.Commited,
+                    Type = ArticleCommitType.Addition,
+                    Content = ""
+                };
+                var commits = new List<ArticleCommitMainInfoVM>() { commit1 };
+                if (await _localStorageService.ContainKeyAsync(key + id))
                 {
-                    if ((await _courseService.GetCourse(1, devMode)).Records.Any(r => r.TargetId == id))
-                    {
-                        var article = GetExample(id);
-                        await AddArticleToLocalStorage(ArticleConverter.ToStorage(article));
-                        return article;
-                    }
+                    var commitsFromStorage = await _localStorageService.GetItemAsync<List<ArticleCommitMainInfoVM>>(key + id);
+                    commits.AddRange(commitsFromStorage);
                 }
+                var article = await _localStorageService.GetItemAsync<ArticleVM>("workbanch_" + id);
+                return new ArticleAggregatedVM { ArticleInfo = article, Commits = commits};
             }
-            if ((await _courseService.GetCourse(1, devMode)).Records.Any(r => r.TargetId == id))
+            Guid courseId = new Guid(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 });
+            if ((await _courseService.GetCourse(courseId)).RootRecord.Find(r => r.Id == id) != null)
             {
-                return GetExample(id);
+                var article = await GetExample(id, commitId);
+                //if (await _localStorageService.ContainKeyAsync(key + article.Id))
+                //{
+                //    var unsendCommits = await _localStorageService.GetItemAsync<List<ArticleCommitVM>>(key + article.Id);
+                //    if (unsendCommits != null && unsendCommits.Count > 0)
+                //        article.Commits.AddRange(unsendCommits);
+                //}
+                return article;
             }
             return null;
         }
 
-        public async Task AddArticleToLocalStorage(ArticleViewModel article)
-        {
-            await _localStorageService.SetItemAsync(devKey + article.Id, ArticleConverter.ToStorage(article));
-        }
+        //public async Task AddArticleToLocalStorage(ArticleViewModel article)
+        //{
+        //    await _localStorageService.SetItemAsync(devKey + article.Id, ArticleConverter.ToStorage(article));
+        //}
 
-        public async Task RemoveArticleFromLocalStorage(int id)
-        {
-            await _localStorageService.RemoveItemAsync(devKey + id);
-        }
+        //public async Task RemoveArticleFromLocalStorage(int id)
+        //{
+        //    await _localStorageService.RemoveItemAsync(devKey + id);
+        //}
 
-        private ArticleViewModel GetExample(int id)
+        //public async Task AddCommit(Guid articleId, ArticleCommitVM commit)
+        //{
+        //    if (await _localStorageService.ContainKeyAsync(key + articleId))
+        //    {
+        //        var unsendCommits = await _localStorageService.GetItemAsync<List<ArticleCommitVM>>(key + articleId);
+        //        await _localStorageService.SetItemAsync(key + articleId, unsendCommits.Append(commit).ToList());
+        //    }
+        //    else
+        //    {
+        //        await _localStorageService.SetItemAsync(key + articleId, new List<ArticleCommitVM>() { commit });
+        //    }
+        //}
+
+        public async Task AddCommit(Guid articleId, ArticleCommitMainInfoVM commit)
         {
-            var commit = new ArticleCommitViewModel
+            if (await _localStorageService.ContainKeyAsync(key + articleId))
             {
-                Id = 0,
-                Title = "First Commit",
-                CreatedAt = new DateTime(2010, 11, 2, 14, 23, 22),
-                CreatedBy = "Тёмыч",
-                Description = "Первый коммит Тёмыча",
-                DiffWords = new string[] { "Эта", " ", "статья", " ", "про", " ", "Тёмыча" },
-                DiffBlocks = new List<ArticleDiffBlock>() { new(0, 0, 0, 7) },
+                var commits = await _localStorageService.GetItemAsync<List<ArticleCommitMainInfoVM>>(key + articleId);
+                await _localStorageService.SetItemAsync(key + articleId, commits.Append(commit));
+            }
+            else
+            {
+                await _localStorageService.SetItemAsync(key + articleId, new List<ArticleCommitMainInfoVM>() { commit });
+            }
+        }
+
+        private async Task<ArticleAggregatedVM> GetExample(Guid id, Guid? commitId)
+        {
+            var commit1 = new ArticleCommitMainInfoVM
+            {
+                Id = new Guid(new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }),
+                Title = "Created",
+                CreatedAt = new DateTime(2021, 05, 15, 22, 23, 22),
+                CreatedBy = "artbiel",
+                Description = "Article created",
                 CommitState = CommitState.Commited,
-                Type = ArticleCommitType.Initital
+                Type = ArticleCommitType.Addition,
+                Content = ""
             };
-            var article = new ArticleViewModel()
+            var commits = new List<ArticleCommitMainInfoVM>() { commit1 };
+            if(await _localStorageService.ContainKeyAsync(key + id))
+            {
+                var commitsFromStorage = await _localStorageService.GetItemAsync<List<ArticleCommitMainInfoVM>>(key + id);
+                commits.AddRange(commitsFromStorage);
+            }
+            var article = new ArticleVM()
             {
                 Id = id,
-                Title = "Hello World",
-                Commits = new List<ArticleCommitViewModel>() { commit }
+                Title = "Язык C# и платформа .NET",
+                Content = commits.Last().Content,
+                CurrentCommitId = commitId ?? commits.Last().Id,
             };
-            return article;
+            return new() { ArticleInfo = article, Commits = commits };
         }
 
-        private static class ArticleConverter
-        {
-            public static ArticleViewModel FromStorage(ArticleViewModel articleViewModel)
-            {
-                if (articleViewModel?.Commits != null)
-                {
-                    foreach (var commit in articleViewModel.Commits)
-                    {
-                        if (commit.PrevCommit != null)
-                            commit.PrevCommit = articleViewModel.Commits.FirstOrDefault(c => c.Id == commit.PrevCommit.Id);
-                    }
-                }
-                return articleViewModel;
-            }
+        //private static class ArticleConverter
+        //{
+        //    public static ArticleVM FromStorage(ArticleVM articleViewModel)
+        //    {
+        //        if (articleViewModel?.Commits != null)
+        //        {
+        //            foreach (var commit in articleViewModel.Commits)
+        //            {
+        //                if (commit.PrevCommit != null)
+        //                    commit.PrevCommit = articleViewModel.Commits.FirstOrDefault(c => c.Id == commit.PrevCommit.Id);
+        //            }
+        //        }
+        //        return articleViewModel;
+        //    }
 
-            public static ArticleViewModel ToStorage(ArticleViewModel articleViewModel)
-            {
-                if (articleViewModel?.Commits != null)
-                {
-                    foreach (var commit in articleViewModel.Commits)
-                    {
-                        if (commit.PrevCommit != null)
-                            commit.PrevCommit = new() { Id = commit.PrevCommit.Id };
-                    }
-                }
-                return articleViewModel;
-            }
-        }
+        //    public static ArticleVM ToStorage(ArticleVM articleViewModel)
+        //    {
+        //        //if (articleViewModel?.Commits != null)
+        //        //{
+        //        //    foreach (var commit in articleViewModel.Commits)
+        //        //    {
+        //        //        if (commit.PrevCommit != null)
+        //        //            commit.PrevCommit = new() { Id = commit.PrevCommit.Id };
+        //        //    }
+        //        //}
+        //        return articleViewModel;
+        //    }
+        //}
     }
 
 }

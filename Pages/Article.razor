@@ -1,12 +1,11 @@
-﻿@page "/courses/{courseId:int}/{articleId:int}"
+﻿@page "/courses/{courseId:guid}/{articleId:guid}/{param?}"
 @inherits FluxorComponent
 @inject IState<ArticleState> ArticleState
 @inject IState<CourseState> CourseState
 @inject IState<RightSidebarState> RightSidebarState
-@inject IState<DevModeState> DevModeState
 @inject DialogService DialogService
 @inject IDispatcher Dispatcher
-
+@inject NavigationManager NavigationManager
 
 @if (ArticleState.Value.IsLoading)
 {
@@ -23,78 +22,64 @@ else
         <div class=@("article-wrapper" + (RightSidebarState.Value.IsDisplay ? " article-wrapper-with-sidebar" : ""))>
             <nav aria-label="breadcrumb" class="article-breadcrumb">
                 <ol class="breadcrumb">
-                    <li class=@("breadcrumb-item" + (DevModeState.Value.Enabled ? " dev" : ""))>
-                        <NavLink href="@("/courses/" + CourseState.Value.CurrentCourse.Id)">
-                            @CourseState.Value.CurrentCourse.Name
+                    <li class="breadcrumb-item">
+                        <NavLink href="@("/courses/" + CourseState.Value.CurrentCourse.Id)" class="mdc-typography--overline">
+                            @CourseState.Value.CurrentCourse.Title
                         </NavLink>
                     </li>
                     @foreach (var r in CourseState.Value.ActiveRecords.Skip(1))
                     {
-                        <li class="breadcrumb-item active">@r.Name</li>
+                        <li class="breadcrumb-item mdc-typography--overline">@r.Title</li>
                     }
                 </ol>
             </nav>
-            @if (DevModeState.Value.Enabled)
+            @if (isEditing)
             {
                 <ArticleEditMode />
             }
             else
             {
                 <div class="d-flex justify-content-between align-items-center">
-                    <h1>@ArticleState.Value.CurrentArticle.Title</h1>
+                    <h1 class="mdc-typography--headline3">@ArticleState.Value.CurrentArticle.Title</h1>
+
+                    <MBButton ButtonStyle="MBButtonStyle.ContainedUnelevated" class="mdc-theme--on-primary mdc-theme--primary-bg" Label="Edit"
+                              @onclick="@(() => NavigationManager.NavigateTo($"/courses/{CourseId}/{ArticleId}/edit"))" />
                 </div>
-                @string.Join("", ArticleState.Value.CurrentWords)
+                <div class="mdc-typography">
+                    @(new MarkupString(ArticleState.Value.CurrentArticle.Content))
+                </div>
             }
         </div>
+        <ArticleSidebarComponent />
     }
-    <ArticleSidebarComponent />
 }
 
 @code {
 
     [Parameter]
-    public int CourseId { get; set; }
+    public Guid CourseId { get; set; }
 
     [Parameter]
-    public int ArticleId { get; set; }
+    public Guid ArticleId { get; set; }
 
-    protected override void OnInitialized()
-    {
-        DevModeState.StateChanged += SubscribeDevModeState;
-        ArticleState.StateChanged += SubscribeArticleState;
-        base.OnInitialized();
-    }
+    [Parameter]
+    public string Param { get; set; }
+
+    private bool isEditing { get; set; }
 
     protected override void OnParametersSet()
     {
         if (ArticleId != ArticleState.Value.CurrentArticle?.Id)
         {
-            Dispatcher.Dispatch(new FetchArticleAction(CourseId, ArticleId, DevModeState.Value.Enabled));
+            Dispatcher.Dispatch(new FetchArticleAction(CourseId, ArticleId, null));
         }
+        isEditing = Param == "edit";
         base.OnParametersSet();
     }
 
     protected override void Dispose(bool disposing)
     {
-        DevModeState.StateChanged -= SubscribeDevModeState;
-        ArticleState.StateChanged -= SubscribeArticleState;
         Dispatcher.Dispatch(new ClearArticleStateAction());
-        Dispatcher.Dispatch(new ClearPageTitleAction());
         base.Dispose(disposing);
-    }
-
-    private void SubscribeArticleState(object sender, ArticleState state)
-    {
-        if (ArticleState.Value.CurrentArticle != null)
-        {
-            Dispatcher.Dispatch(new SetPageTitleAction(state.CurrentArticle.Title));
-        }
-    }
-
-    private void SubscribeDevModeState(object sender, DevModeState state)
-    {
-        Dispatcher.Dispatch(new FetchArticleAction(CourseId, ArticleId, DevModeState.Value.Enabled));
-        if (ArticleState.Value.CurrentArticle != null)
-            Dispatcher.Dispatch(new SetPageTitleAction(ArticleState.Value.CurrentArticle.Title));
     }
 }

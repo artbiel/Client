@@ -1,0 +1,74 @@
+﻿@inject IDispatcher Dispatcher
+@inject HttpClient HttpClient 
+
+<MBDialog @ref="@SignUpDialog"
+          Title="Sign Up">
+    <Body>
+        <EditForm Model="signUpVM" OnValidSubmit="Submit">
+            <DataAnnotationsValidator />
+            <div class="mdc-layout-grid__cell--span-12">
+                <MBTextField @bind-Value="@signUpVM.Email"
+                             style="width: 100%; margin-top: 10px;"
+                             Label="Email"
+                             TextInputStyle="@MBTextInputStyle.Outlined"
+                             ValidationMessageFor="@(() => signUpVM.Email)"
+                             LeadingIcon="email"
+                             Density="MBDensity.Comfortable" />
+            </div>
+            <div class="mdc-layout-grid__cell--span-12">
+                <MBTextField @bind-Value="@signUpVM.Name"
+                             style="width: 100%; margin-top: 10px;"
+                             Label="Name"
+                             TextInputStyle="@MBTextInputStyle.Outlined"
+                             ValidationMessageFor="@(() => signUpVM.Name)"
+                             LeadingIcon="person"
+                             Density="MBDensity.Comfortable" />
+            </div>
+            <div class="mdc-layout-grid__cell--span-12">
+                <MBTextField @bind-Value="@signUpVM.Password"
+                             style="width: 100%"
+                             Label="Password"
+                             LeadingIcon="lock"
+                             type="password"
+                             TextInputStyle="@MBTextInputStyle.Outlined"
+                             ValidationMessageFor="@(() => signUpVM.Password)"
+                             Density="MBDensity.Comfortable" />
+            </div>
+            <div class="mdc-layout-grid__cell--span-12">
+                <MBTextField @bind-Value="@signUpVM.PasswordConfirmation"
+                             style="width: 100%"
+                             Label="Password Confirmation"
+                             LeadingIcon="lock"
+                             type="password"
+                             TextInputStyle="@MBTextInputStyle.Outlined"
+                             ValidationMessageFor="@(() => signUpVM.PasswordConfirmation)"
+                             Density="MBDensity.Comfortable" />
+            </div>
+            <div class="mdc-layout-grid__cell--span-12">
+                <MBButton ButtonStyle="MBButtonStyle.ContainedUnelevated" class="mdc-theme--on-primary mdc-theme--primary-bg" Label="Sign Up"
+                          type="submit" style="width: 100%;" />
+            </div>
+            <div class="mdc-layout-grid__cell--span-12">
+                <MBButton ButtonStyle="MBButtonStyle.ContainedUnelevated" class="mdc-theme--on-primary mdc-theme--primary-bg" Label="Use Google Account"
+                          type="button" style="width: 100%; margin-top: 5px;" />
+            </div>
+        </EditForm>
+    </Body>
+</MBDialog>
+
+
+
+@code {
+    private MBDialog SignUpDialog;
+
+    private SignUpVM signUpVM = new SignUpVM();
+
+    private async Task Submit()
+    {
+        var response = await HttpClient.PostAsJsonAsync("https//:localhost:6001/api/v1/account/register", signUpVM);
+        Console.WriteLine(response.StatusCode);
+        await SignUpDialog.HideAsync();
+    }
+
+    public async Task ShowAsync() => await SignUpDialog.ShowAsync();
+}

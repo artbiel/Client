@@ -1,0 +1,59 @@
+﻿@inject IDispatcher Dispatcher
+
+<MBDialog @ref="@NewItemDialog"
+          Title="Create New Application">
+    <Body>
+        <EditForm Model="newApplication" OnValidSubmit="Submit">
+            <DataAnnotationsValidator />
+            <div class="mdc-layout-grid__inner">
+                <div class="mdc-layout-grid__cell--span-12">
+                    <MBSelect @bind-Value="@newApplication.Type"
+                              style="margin-top: 6px; width: 100%;"
+                              class="mdc-layout-grid__cell--span-12"
+                              Items="commitTypeValues"
+                              ItemValidation="@MBItemValidation.DefaultToFirst"
+                              Label="Type"
+                              SelectInputStyle="MBSelectInputStyle.Outlined" />
+                </div>
+                <div class="mdc-layout-grid__cell--span-12">
+                    <MBTextField @bind-Value="@newApplication.Title"
+                                 style="width: 100%"
+                                 Label="Name"
+                                 TextInputStyle="@MBTextInputStyle.Outlined"
+                                 ValidationMessageFor="@(() => newApplication.Title)"
+                                 Density="MBDensity.Comfortable" />
+                </div>
+                <div class="mdc-layout-grid__cell--span-12">
+                    <MBTextField @bind-Value="@newApplication.Description"
+                                 style="width: 100%"
+                                 Label="Description"
+                                 TextInputStyle="@MBTextInputStyle.Outlined"
+                                 ValidationMessageFor="@(() => newApplication.Description)"
+                                 Density="MBDensity.Comfortable" />
+                </div>
+            </div>
+
+            <div class="mdc-layout-grid__cell--span-12" style="text-align: right;">
+                <MBButton Label="Create" type="submit"></MBButton>
+                <MBButton Label="Cancel" type="reset" @onclick="@(async () => { await NewItemDialog.HideAsync(); })" ButtonStyle="@MBButtonStyle.Text"></MBButton>
+            </div>
+        </EditForm>
+    </Body>
+</MBDialog>
+
+@code {
+    private MBDialog NewItemDialog;
+
+    private NewSupportApplicationVM newApplication = new NewSupportApplicationVM();
+
+    MBSelectElement<SupportApplicationType>[] commitTypeValues = Enum.GetValues<SupportApplicationType>()
+       .Select(v => new MBSelectElement<SupportApplicationType> { Label = Enum.GetName(v), SelectedValue = v }).ToArray();
+
+    private async Task Submit()
+    {
+        Dispatcher.Dispatch(new CreateNewSupportApplicationAction(newApplication));
+        await NewItemDialog.HideAsync();
+    }
+
+    public async Task ShowAsync() => await NewItemDialog.ShowAsync();
+}

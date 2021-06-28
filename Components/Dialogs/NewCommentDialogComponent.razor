@@ -1,0 +1,51 @@
+﻿<MBDialog @ref="@NewCommentDialog"
+          Title="Add New Comment">
+    <Body>
+        <EditForm Model="newComment" OnValidSubmit="OnSubmit">
+            <DataAnnotationsValidator />
+                <div class="mdc-layout-grid__cell--span-12">
+                    <MBTextArea @bind-Value="@newComment.Content"
+                                style="width: 100%; margin-top: 10px;"
+                                Density="MBDensity.Compact"
+                                Label="Content"
+                                TextInputStyle="@MBTextInputStyle.Outlined"
+                                ValidationMessageFor="@(() => newComment)" />
+                </div>
+
+                <div class="mdc-layout-grid__cell--span-12" style="text-align: right;">
+                    <MBButton Label="Add" type="submit"></MBButton>
+                    <MBButton Label="Cancel" @onclick="@(async () => { await NewCommentDialog.HideAsync(); })" ButtonStyle="@MBButtonStyle.Text"></MBButton>
+                </div>
+        </EditForm>
+    </Body>
+</MBDialog>
+
+@code {
+    [Parameter]
+    public EventCallback<NewCommentVM> OnCommentAdded { get; set; }
+
+    [Parameter]
+    public Guid? ParentId { get; set; }
+
+    private MBDialog NewCommentDialog;
+
+    private NewCommentVM newComment;
+
+    protected override void OnParametersSet()
+    {
+        newComment = new NewCommentVM
+        {
+            ParentId = ParentId,
+            Content = "",
+        };
+        base.OnInitialized();
+    }
+
+    private async Task OnSubmit()
+    {
+        await OnCommentAdded.InvokeAsync(newComment);
+        await NewCommentDialog.HideAsync();
+    }
+
+    public async Task ShowAsync() => await NewCommentDialog.ShowAsync();
+}

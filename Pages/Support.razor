@@ -1,6 +1,102 @@
-﻿@page "/support"
-<h3>Support</h3>
+﻿@page "/support/{id:guid?}"
+@inherits FluxorComponent
+@inject IState<SupportState> SupportState
+@inject NavigationManager NavigationManager
+@inject IDispatcher Dispatcher
+
+<div class="mdc-layout-grid">
+    <div class="mdc-layout-grid__inner">
+        <div class="mdc-layout-grid__cell--span-12 d-flex justify-content-between align-items-center flex-wrap">
+            <h1 class="mdc-typography--headline2">Support</h1>
+            <MBButton ButtonStyle="MBButtonStyle.ContainedUnelevated" LeadingIcon="add" class="mdc-theme--on-primary mdc-theme--primary-bg" Label="Create"
+                      @onclick="async () => await NewApplicationDialog.ShowAsync()" />
+        </div>
+        <MBDebouncedTextField Value="@SupportState.Value.SearchString"
+                              ValueChanged="(string val) => Dispatcher.Dispatch(new SetSupportSearchStringAction(val))"
+                              class="mdc-layout-grid__cell--span-10"
+                              DebounceInterval="@debouncedInterval"
+                              Label="Search"
+                              TextInputStyle="MBTextInputStyle.Outlined"
+                              Density="MBDensity.Comfortable" />
+        <MBSelect Value="SupportState.Value.SearchType!"
+                  ValueChanged="(SupportApplicationType? type) => Dispatcher.Dispatch(new SetSupportSearchTypeAction(type))"
+                  TItem="Nullable<SupportApplicationType>"
+                  class="mdc-layout-grid__cell--span-2"
+                  Items="SearchTypeValues"
+                  ItemValidation="@MBItemValidation.NoSelection"
+                  Density="MBDensity.Comfortable"
+                  SelectInputStyle="MBSelectInputStyle.Outlined" />
+        @if (SupportState.Value.IsPageLoading)
+        {
+            <LoadingComponent />
+        }
+        else
+        {
+            @if (SupportState.Value.Applications?.Count > 0)
+            {
+                <div class="mdc-layout-grid__cell--span-3">
+                    @foreach (var item in SupportState.Value.Applications)
+                    {
+                        <div class="mdc-layout-grid__cell--span-12">
+                            <SupportItemComponent Item="item" IsActive="item.Id == SupportState.Value.CurrentApplication?.Id" />
+                        </div>
+                    }
+                </div>
+                <div class="mdc-layout-grid__cell--span-9">
+                    @if (SupportState.Value.IsCurrentLoading)
+                    {
+                        <LoadingComponent />
+                    }
+                    else
+                    {
+                        <SupportApplicationComponent Application="SupportState.Value.CurrentApplication" />
+                    }
+                </div>
+            }
+            else
+            {
+                <MBCard AutoStyled="true"
+                        class="mb-ui-control mdc-layout-grid__cell--span-12">
+                    <Primary>
+                        <div class="mb-card__autostyled" style="width: 100%;">
+                            <div class="mdc-layout-grid" style="display: flex; flex-direction: column; align-items: center;">
+                                <h3 class="mdc-typography mdc-typography--headline3">There is no Applications</h3>
+                                <div class="mdc-typography mdc-typography--headline5">Create new Application!</div>
+                            </div>
+                        </div>
+                    </Primary>
+                </MBCard>
+            }
+        }
+    </div>
+</div>
+
+<NewSupportApplicationDialogComponent @ref="NewApplicationDialog" />
 
 @code {
+    [Parameter]
+    public Guid? Id { get; set; }
 
+    private NewSupportApplicationDialogComponent NewApplicationDialog;
+
+    private int debouncedInterval = 500;
+
+    MBSelectElement<SupportApplicationType?>[] SearchTypeValues = Enum.GetValues<SupportApplicationType>()
+        .Select(v => new MBSelectElement<SupportApplicationType?> { Label = Enum.GetName(v), SelectedValue = v })
+        .Prepend(new() { Label = "All", SelectedValue = null }).ToArray();
+
+    protected override void OnParametersSet()
+    {
+        FetchItems();
+        base.OnParametersSet();
+    }
+
+    private void FetchItems()
+    {
+        Dispatcher.Dispatch(new FetchAllApplicationsAction(SupportState.Value.SearchString, SupportState.Value.SearchType));
+        if (Id != null)
+        {
+            Dispatcher.Dispatch(new FetchApplicationAction(Id.Value));
+        }
+    }
 }

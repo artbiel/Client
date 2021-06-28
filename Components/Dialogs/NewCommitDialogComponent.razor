@@ -1,0 +1,69 @@
+﻿@inject IDispatcher Dispatcher
+
+<MBDialog @ref="@NewCommitDialog"
+          Title="Add New Commit">
+    <Body>
+        <EditForm Model="newCommit" OnValidSubmit="OnSubmit">
+            <DataAnnotationsValidator />
+            <div class="mdc-layout-grid__inner">
+                <div class="mdc-layout-grid__cell--span-12">
+                    <MBSelect @bind-Value="@newCommit.Type"
+                              style="margin-top: 6px; width: 100%;"
+                              class="mdc-layout-grid__cell--span-12"
+                              Items="commitTypeValues"
+                              ItemValidation="@MBItemValidation.DefaultToFirst"
+                              Label="Commit Type"
+                              SelectInputStyle="MBSelectInputStyle.Outlined" />
+                </div>
+                <div class="mdc-layout-grid__cell--span-12">
+                    <MBTextField @bind-Value="@newCommit.Title"
+                                 style="width: 100%"
+                                 Label="Title"
+                                 TextInputStyle="@MBTextInputStyle.Outlined"
+                                 ValidationMessageFor="@(() => newCommit.Title)"
+                                 Density="MBDensity.Comfortable" />
+                </div>
+
+                <div class="mdc-layout-grid__cell--span-12">
+                    <MBTextArea @bind-Value="@newCommit.Description"
+                                style="width: 100%"
+                                Density="MBDensity.Compact"
+                                Label="Description"
+                                TextInputStyle="@MBTextInputStyle.Outlined"
+                                ValidationMessageFor="@(() => newCommit.Description)" />
+                </div>
+            </div>
+
+            <div class="mdc-layout-grid__cell--span-12" style="text-align: right;">
+                <MBButton Label="Add" type="submit"></MBButton>
+                <MBButton Label="Cancel" @onclick="@(async () => { await NewCommitDialog.HideAsync(); })" ButtonStyle="@MBButtonStyle.Text"></MBButton>
+            </div>
+        </EditForm>
+    </Body>
+</MBDialog>
+
+@code {
+    [Parameter]
+    public Guid ArticleId { get; set; }
+
+    [Parameter]
+    public Guid PrevCommitId { get; set; }
+
+    [Parameter]
+    public string Content { get; set; }
+
+    private MBDialog NewCommitDialog;
+
+    private NewArticleCommitVM newCommit = new NewArticleCommitVM();
+
+    MBSelectElement<ArticleCommitType>[] commitTypeValues = Enum.GetValues<ArticleCommitType>()
+       .Select(v => new MBSelectElement<ArticleCommitType> { Label = Enum.GetName(v), SelectedValue = v }).ToArray();
+
+    private async Task OnSubmit()
+    {
+        Dispatcher.Dispatch(new AddArticleCommitAction(ArticleId, PrevCommitId, newCommit.Title, Content, newCommit.Description, newCommit.Type));
+        await NewCommitDialog.HideAsync();
+    }
+
+    public async Task ShowAsync() => await NewCommitDialog.ShowAsync();
+}

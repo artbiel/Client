@@ -1,10 +1,10 @@
-﻿@inject IState<DevModeState> DevModeState
+﻿
 @inject IDispatcher Dispatcher
 
-<button class=@("switch" + (DevModeState.Value.Enabled ? " active" : "")) 
+@*<button class=@("switch" + (DevModeState.Value.Enabled ? " active" : "")) 
         @onclick="() => Dispatcher.Dispatch(new ChangeDevModeAction(!DevModeState.Value.Enabled))">
     @(DevModeState.Value.Enabled ? "Dev" : "View")
-</button>
+</button>*@
 
 <style>
     .switch {

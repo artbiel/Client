@@ -32,7 +32,7 @@
 }
 
 .header {
-    z-index: 200;
+    z-index: 2;
     position: fixed;
     top: 0;
     left: 0;
@@ -53,6 +53,6 @@
 
 @media screen and (max-width: 1080px){
     .menu-toggler-button{
-        display: none;
+        display: none!important;
     }
 }

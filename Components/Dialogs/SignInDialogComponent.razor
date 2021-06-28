@@ -1,0 +1,67 @@
+﻿@inject IDispatcher Dispatcher
+@inject HttpClient HttpClient
+
+<MBDialog @ref="@SignInDialog"
+          Title="Sign In">
+    <Body>
+        <EditForm Model="signInVM" OnValidSubmit="Submit">
+            <DataAnnotationsValidator />
+                <div class="mdc-layout-grid__cell--span-12">
+                    <MBTextField @bind-Value="@signInVM.Email"
+                                 style="width: 100%; margin-top: 10px;"
+                                 Label="Login"
+                                 TextInputStyle="@MBTextInputStyle.Outlined"
+                                 ValidationMessageFor="@(() => signInVM.Email)"
+                                 LeadingIcon="person"
+                                 Density="MBDensity.Comfortable" />
+                </div>
+                <div class="mdc-layout-grid__cell--span-12">
+                    <MBTextField @bind-Value="@signInVM.Password"
+                                 style="width: 100%"
+                                 Label="Password"
+                                 type="password"
+                                 LeadingIcon="lock"
+                                 TextInputStyle="@MBTextInputStyle.Outlined"
+                                 ValidationMessageFor="@(() => signInVM.Password)"
+                                 Density="MBDensity.Comfortable" />
+                </div>
+                <div class="mdc-layout-grid__cell--span-12">
+                    <MBCheckbox @bind-Value="signInVM.RememberMe"
+                                Label="Remember me"
+                                type="button"
+                                Density="MBDensity.Comfortable"
+                                />
+                </div>
+                <div class="mdc-layout-grid__cell--span-12">
+                    <MBButton ButtonStyle="MBButtonStyle.ContainedUnelevated" class="mdc-theme--on-primary mdc-theme--primary-bg" Label="Sign In"
+                              type="submit" style="width: 100%; margin-top: 8px;" />
+                    <MBButton ButtonStyle="MBButtonStyle.ContainedUnelevated" class="mdc-theme--on-secondary mdc-theme--secondary-bg" Label="Sign Up"
+                              type="button" style="width: 100%; margin-top: 5px;" @onclick="OnSignUpButtonClick"/>
+                </div>
+        </EditForm>
+    </Body>
+</MBDialog>
+
+<SignUpDialogComponent @ref="SignUpDialog"/>
+
+@code {
+    private MBDialog SignInDialog;
+    private SignUpDialogComponent SignUpDialog;
+
+    private SignInVM signInVM = new SignInVM();
+
+    private async Task Submit()
+    {
+        var response = await HttpClient.PostAsJsonAsync("https//:localhost:6001/api/v1/account/login", signInVM);
+        Console.WriteLine(response.StatusCode);
+        await SignInDialog.HideAsync();
+    }
+
+    private async Task OnSignUpButtonClick()
+    {
+        await SignInDialog.HideAsync();
+        await SignUpDialog.ShowAsync();
+    }
+
+    public async Task ShowAsync() => await SignInDialog.ShowAsync();
+}

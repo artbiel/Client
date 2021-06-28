@@ -8,30 +8,17 @@ using System;
 using DiffPlex;
 using Client.Infrastructure;
 using Radzen;
+using Material.Blazor;
 
 namespace Client.Store
 {
-    public class ArticleState
-    {
-        public bool IsLoading { get; }
-        public ArticleViewModel CurrentArticle { get; }
-        public ArticleCommitViewModel CurrentCommit { get; }
-        public string[] CurrentWords { get; }
-
-        public ArticleState(bool isLoading, ArticleViewModel currentArticle, ArticleCommitViewModel currentCommit, string[] currentWords)
-        {
-            IsLoading = isLoading;
-            CurrentArticle = currentArticle;
-            CurrentCommit = currentCommit;
-            CurrentWords = currentWords;
-        }
-    }
+    public record ArticleState(bool IsLoading, ArticleVM CurrentArticle, List<ArticleCommitMainInfoVM> Commits);
 
     public class ArticleFeature : Feature<ArticleState>
     {
         public override string GetName() => "Article";
 
-        protected override ArticleState GetInitialState() => new ArticleState(false, null, null, null);
+        protected override ArticleState GetInitialState() => new ArticleState(false, null, null);
     }
 
     public static class ArticleReducers
@@ -39,54 +26,49 @@ namespace Client.Store
         [ReducerMethod]
         public static ArticleState ReduceFetchArticleAction(ArticleState state, FetchArticleAction action)
         {
-            return new ArticleState(true, null, null, null);
+            return new ArticleState(true, null, null);
         }
 
         [ReducerMethod]
         public static ArticleState ReduceFetchArticleResultAction(ArticleState state, FetchArticleResultAction action)
         {
-            var article = action.Article?.ArticleInfo;
-            Console.WriteLine(article.Commits.Count);
-            var currentCommit = article?.Commits?.LastOrDefault();
-            var currentWords = ArticleHelpers.GetCurrentWords(article?.Commits, currentCommit);
-            return new ArticleState(false, article, currentCommit, currentWords);
-        }
-
-        [ReducerMethod]
-        public static ArticleState ReduceAddArticleAction(ArticleState state, AddArticleAction action)
-        {
-            return new ArticleState(state.IsLoading, state.CurrentArticle, state.CurrentCommit, state.CurrentWords);
-        }
-
-        [ReducerMethod]
-        public static ArticleState ReduceRemoveArticleAction(ArticleState state, RemoveArticleAction action)
-        {
-            return new ArticleState(state.IsLoading, state.CurrentArticle, state.CurrentCommit, state.CurrentWords);
+            //var currentCommit = action.Article?.Commits?.Where(c => c.CommitState == CommitState.Commited).LastOrDefault();
+            //var currentWords = ArticleHelpers.GetCurrentWords(action.Article?.Commits, currentCommit);
+            return new ArticleState(false, action.Article.ArticleInfo, action.Article.Commits);
         }
 
         [ReducerMethod]
         public static ArticleState ReduceClearArticleStateAction(ArticleState state, ClearArticleStateAction action)
         {
-            return new ArticleState(false, null, null, null);
+            return new ArticleState(false, null, null);
         }
 
         [ReducerMethod]
-        public static ArticleState ReduceSetCurrentCommitAction(ArticleState state, SetCurrentCommitAction action)
+        public static ArticleState ReduceSetCurrentCommitAction(ArticleState state, SetCurrentArticleCommitAction action)
         {
-            var currentCommit = state.CurrentArticle.Commits.FirstOrDefault(c => c.Id == action.CommitId) ?? state.CurrentCommit;
-            string[] currentWords = currentCommit != state.CurrentCommit ? ArticleHelpers.GetCurrentWords(state.CurrentArticle.Commits,
-                currentCommit) : state.CurrentWords;
-            Console.WriteLine(currentCommit.Title);
-            Console.WriteLine(currentWords.Last());
-            return new ArticleState(state.IsLoading, state.CurrentArticle, currentCommit, currentWords);
+            var currentCommit = state.Commits.FirstOrDefault(c => c.Id == action.CommitId) 
+                ?? state.Commits.FirstOrDefault(c => c.Id == state.CurrentArticle.CurrentCommitId);
+            state.CurrentArticle.Content = currentCommit.Content;
+            state.CurrentArticle.CurrentCommitId = action.CommitId;
+            return new ArticleState(state.IsLoading, state.CurrentArticle, state.Commits);
         }
+
+        //[ReducerMethod]
+        //public static ArticleState ReduceSetArticleCommitsAction(ArticleState state, SetArticleCommitsAction action)
+        //{
+        //    string[] currentWords = action.CurrentCommit != state.CurrentCommit ? ArticleHelpers.GetCurrentWords(action.Commits,
+        //        action.CurrentCommit) : state.CurrentWords;
+        //    state.CurrentArticle.Commits = action.Commits;
+        //    Console.WriteLine(state.CurrentArticle.Commits.Count);
+        //    return new ArticleState(state.IsLoading, state.CurrentArticle, action.CurrentCommit, currentWords);
+        //}
 
     }
 
     public static class ArticleHelpers
     {
 
-        public static string[] GetCurrentWords(List<ArticleCommitViewModel> commits, ArticleCommitViewModel currentCommit)
+        public static string[] GetCurrentWords(List<ArticleCommitVM> commits, ArticleCommitVM currentCommit)
         {
             if (commits == null)
                 return new string[] { "" };
@@ -112,29 +94,9 @@ namespace Client.Store
         }
     }
 
-    public class FetchArticleAction
-    {
-        public int CourseId { get; set; }
-        public int ArticleId { get; set; }
-        public bool DevMode { get; set; }
+    public record FetchArticleAction(Guid CourseId, Guid ArticleId, Guid? CommitId);
 
-        public FetchArticleAction(int courseId, int articleId, bool devMode)
-        {
-            CourseId = courseId;
-            ArticleId = articleId;
-            DevMode = devMode;
-        }
-    }
-
-    public class FetchArticleResultAction
-    {
-        public ArticleAggregatedViewModel Article { get; }
-
-        public FetchArticleResultAction(ArticleAggregatedViewModel article)
-        {
-            Article = article;
-        }
-    }
+    public record FetchArticleResultAction(ArticleAggregatedVM Article);
 
     public class ClearArticleStateAction { }
 
@@ -142,142 +104,117 @@ namespace Client.Store
     {
         private readonly CourseService _courseService;
         private readonly ArticleService _articleService;
+        private readonly IState<CourseState> _courseState;
 
-        public FecthArticleActionEffect(CourseService courseService, ArticleService articleService)
+        public FecthArticleActionEffect(CourseService courseService, ArticleService articleService, IState<CourseState> courseState)
         {
             _courseService = courseService;
             _articleService = articleService;
+            _courseState = courseState;
         }
 
         public override async Task HandleAsync(FetchArticleAction action, IDispatcher dispatcher)
         {
-            var course = await _courseService.GetCourse(action.CourseId, action.DevMode);
-            var article = await _articleService.GetArticle(action.ArticleId, action.DevMode);
-            dispatcher.Dispatch(new SetCourseAction(course, action.DevMode));
-            dispatcher.Dispatch(new SetActiveRecordsAction(action.ArticleId));
-            dispatcher.Dispatch(new FetchArticleResultAction(new() { CourseInfo = course, ArticleInfo = article }));
-        }
-    }
-
-    public class AddArticleAction
-    {
-        public int Id { get; set; }
-        public string Name { get; }
-
-        public AddArticleAction(int id, string name)
-        {
-            Id = id;
-            Name = name;
-        }
-    }
-
-    public class AddArticleActionEffect : Effect<AddArticleAction>
-    {
-        private ArticleService _articleService;
-
-        public AddArticleActionEffect(ArticleService articleService)
-        {
-            _articleService = articleService;
-        }
-
-        public override async Task HandleAsync(AddArticleAction action, IDispatcher dispatcher)
-        {
-            var initialCommit = new ArticleCommitViewModel
+            var articleAggreate = await _articleService.GetArticle(action.ArticleId, action.CommitId);
+            if(_courseState.Value.CurrentCourse == null || _courseState.Value.CurrentCourse.Id != action.CourseId)
             {
-                CreatedAt = DateTime.Now,
-                CreatedBy = "Тёмыч",
-                DiffBlocks = new List<ArticleDiffBlock>(),
-                Id = new Random().Next(),
-                Description = "Initial Commit",
-                Title = "Initial Commit",
-                CommitState = CommitState.Commited,
-                Type = ArticleCommitType.Initital
-            };
-            var article = new ArticleViewModel() { Id = action.Id, Title = action.Name, Commits = new() { initialCommit } };
-            await _articleService.AddArticleToLocalStorage(article);
+                var course = await _courseService.GetCourse(action.CourseId);
+                dispatcher.Dispatch(new SetCourseAction(course));
+            }
+            dispatcher.Dispatch(new SetActiveRecordsAction(action.ArticleId));
+            dispatcher.Dispatch(new FetchArticleResultAction(articleAggreate));
         }
     }
 
-    public class RemoveArticleAction
-    {
-        public int Id { get; set; }
-
-        public RemoveArticleAction(int id)
-        {
-            Id = id;
-        }
-    }
-
-    public class RemoveArticleActionEffect : Effect<RemoveArticleAction>
-    {
-        private ArticleService _articleService;
-        private IState<ArticleState> _articleState;
-
-        public RemoveArticleActionEffect(ArticleService articleService, IState<ArticleState> articleState)
-        {
-            _articleService = articleService;
-            _articleState = articleState;
-        }
-
-        public override async Task HandleAsync(RemoveArticleAction action, IDispatcher dispatcher)
-        {
-            await _articleService.RemoveArticleFromLocalStorage(action.Id);
-            if (action.Id == _articleState.Value.CurrentArticle.Id)
-                dispatcher.Dispatch(new ClearArticleStateAction());
-        }
-    }
-
-    public class SaveArticleContentAction
-    {
-        public int ArticleId { get; }
-        public int CurrentCommitId { get; }
-        public string Content { get; }
-
-        public SaveArticleContentAction(int articleId, int currentCommitId, string content)
-        {
-            ArticleId = articleId;
-            CurrentCommitId = currentCommitId;
-            Content = content;
-        }
-    }
+    public record SaveArticleContentAction(Guid ArticleId, Guid CurrentCommitId, string Content);
 
     public class SaveArticleActionEffect : Effect<SaveArticleContentAction>
     {
         private ArticleService _articleService;
         private IState<CourseState> _courseState;
-        private NotificationService _notificationService;
 
-        public SaveArticleActionEffect(ArticleService articleService, IState<CourseState> courseState, NotificationService notificationService)
+        public SaveArticleActionEffect(ArticleService articleService, IState<CourseState> courseState)
         {
             _articleService = articleService;
             _courseState = courseState;
-            _notificationService = notificationService;
         }
 
         public override async Task HandleAsync(SaveArticleContentAction action, IDispatcher dispatcher)
         {
-            var article = await _articleService.GetArticle(action.ArticleId, devMode: true);
-            var currentCommit = article.Commits.FirstOrDefault(c => c.Id == action.CurrentCommitId);
-            if (currentCommit.CommitState == CommitState.Developing)
+            //var article = await _articleService.GetArticle(action.ArticleId);
+            //var currentCommit = article.Commits.FirstOrDefault(c => c.Id == action.CurrentCommitId);
+            //if (currentCommit.CommitState == CommitState.Unsent)
+            //{
+            //    var diffResult = Differ.Instance.CreateWordDiffs(
+            //        string.Join("", ArticleHelpers.GetCurrentWords(article.Commits, currentCommit.PrevCommit as ArticleCommitVM)),
+            //        action.Content, false, false, new[] { ' ' });
+            //    var diffWords = new List<string>();
+            //    foreach (var diff in diffResult.DiffBlocks)
+            //    {
+            //        if (diff.InsertCountB != 0)
+            //        {
+            //            diffWords.AddRange(diffResult.PiecesNew.Skip(diff.InsertStartB).Take(diff.InsertCountB));
+            //        }
+            //    }
+            //    currentCommit.DiffBlocks = diffResult.DiffBlocks.ToArticleDiffBlocks();
+            //    currentCommit.DiffWords = diffWords.ToArray();
+            //    //await _articleService.AddArticleToLocalStorage(article);
+            //}
+            //else
+            //{
+            //    var oldContent = string.Join("", ArticleHelpers.GetCurrentWords(article.Commits, currentCommit));
+            //    var diffResult = Differ.Instance.CreateWordDiffs(oldContent, action.Content, false, false, new[] { ' ' });
+            //    var diffWords = new List<string>();
+            //    foreach (var diff in diffResult.DiffBlocks)
+            //    {
+            //        if (diff.InsertCountB != 0)
+            //        {
+            //            diffWords.AddRange(diffResult.PiecesNew.Skip(diff.InsertStartB).Take(diff.InsertCountB));
+            //        }
+            //    }
+            //    var newDevCommit = new ArticleCommitVM
+            //    {
+            //        Id = Guid.NewGuid(),
+            //        CreatedAt = DateTime.Now,
+            //        CreatedBy = "Тёмыч",
+            //        Title = "123",
+            //        CommitState = CommitState.Unsent,
+            //        DiffBlocks = diffResult.DiffBlocks.ToArticleDiffBlocks(),
+            //        DiffWords = diffWords.ToArray(),
+            //        PrevCommitId = currentCommit.Id,
+            //    };
+            //    article.Commits = article.Commits.Append(newDevCommit).ToList();
+            //    //await _articleService.AddArticleToLocalStorage(article);
+            //    //dispatcher.Dispatch(new FetchArticleAction(_courseState.Value.CurrentCourse.Id, action.ArticleId));
+            //}
+        }
+    }
+
+    public record SetCurrentArticleCommitAction(Guid CommitId);
+
+    //public record SetArticleCommitsAction(List<ArticleCommitVM> Commits, ArticleCommitVM CurrentCommit);
+
+    public record AddArticleCommitAction(Guid ArticleId, Guid PrevCommitId, string Title, string Content,
+        string Description, ArticleCommitType CommitType);
+
+    public class AddArticleCommitActionEffect : Effect<AddArticleCommitAction>
+    {
+        private ArticleService _articleService;
+        private IMBToastService _toastService;
+
+        public AddArticleCommitActionEffect(ArticleService articleService, IMBToastService toastService)
+        {
+            _articleService = articleService;
+            _toastService = toastService;
+        }
+
+        public override async Task HandleAsync(AddArticleCommitAction action, IDispatcher dispatcher)
+        {
+            var article = await _articleService.GetArticle(action.ArticleId, action.PrevCommitId);
+            var prevCommit = article?.Commits?.FirstOrDefault(c => c.Id == action.PrevCommitId);
+            if (prevCommit != null)
             {
-                var diffResult = Differ.Instance.CreateWordDiffs(
-                    string.Join("", ArticleHelpers.GetCurrentWords(article.Commits, currentCommit.PrevCommit)),
-                    action.Content, false, false, new[] { ' ' });
-                var diffWords = new List<string>();
-                foreach (var diff in diffResult.DiffBlocks)
-                {
-                    if (diff.InsertCountB != 0)
-                    {
-                        diffWords.AddRange(diffResult.PiecesNew.Skip(diff.InsertStartB).Take(diff.InsertCountB));
-                    }
-                }
-                currentCommit.DiffBlocks = diffResult.DiffBlocks.ToArticleDiffBlocks();
-                currentCommit.DiffWords = diffWords.ToArray();
-                await _articleService.AddArticleToLocalStorage(article);
-            }
-            else
-            {
-                var oldContent = string.Join("", ArticleHelpers.GetCurrentWords(article.Commits, currentCommit));
+                var oldContent = article.ArticleInfo.Content;
                 var diffResult = Differ.Instance.CreateWordDiffs(oldContent, action.Content, false, false, new[] { ' ' });
                 var diffWords = new List<string>();
                 foreach (var diff in diffResult.DiffBlocks)
@@ -287,32 +224,38 @@ namespace Client.Store
                         diffWords.AddRange(diffResult.PiecesNew.Skip(diff.InsertStartB).Take(diff.InsertCountB));
                     }
                 }
-                var newDevCommit = new ArticleCommitViewModel
-                {
-                    Id = new Random().Next(),
-                    CreatedAt = DateTime.Now,
-                    CreatedBy = "Тёмыч",
-                    Title = "123",
-                    CommitState = CommitState.Developing,
-                    DiffBlocks = diffResult.DiffBlocks.ToArticleDiffBlocks(),
-                    DiffWords = diffWords.ToArray(),
-                    PrevCommit = currentCommit,
-                };
-                article.Commits = article.Commits.Append(newDevCommit).ToList();
-                await _articleService.AddArticleToLocalStorage(article);
-                dispatcher.Dispatch(new FetchArticleAction(_courseState.Value.CurrentCourse.Id, action.ArticleId, devMode: true));
+                //var commit = new ArticleCommitVM
+                //{
+                //    Id = Guid.NewGuid(),
+                //    Title = action.Title,
+                //    Description = action.Description,
+                //    Type = action.CommitType,
+                //    CreatedAt = DateTime.Now,
+                //    CreatedBy = "artbiel",
+                //    CommitState = CommitState.Unsent,
+                //    DiffBlocks = diffResult.DiffBlocks.ToArticleDiffBlocks(),
+                //    DiffWords = diffWords.ToArray(),
+                //    PrevCommitId = action.PrevCommitId
+                //};
+                //article.Commits.Add(commit);
+                //dispatcher.Dispatch(new SetArticleCommitsAction(article.Commits, commit));
             }
-            _notificationService.Notify(new() { Severity = NotificationSeverity.Success, Summary = "Successfully saved!", Duration = 20000, Style = "position: absolute; right: -10px; bottom: 200px" });
+            var commit = new ArticleCommitMainInfoVM
+            {
+                Id = Guid.NewGuid(),
+                Title = action.Title,
+                Description = action.Description,
+                Type = action.CommitType,
+                CreatedAt = DateTime.Now,
+                CreatedBy = "artbiel",
+                CommitState = CommitState.Unsent,
+                PrevCommitId = action.PrevCommitId,
+                Content = action.Content
+            };
+            await _articleService.AddCommit(action.ArticleId, commit);
+            _toastService.ShowToast(MBToastLevel.Success, "Commit was successfully added!");
         }
     }
 
-    public class SetCurrentCommitAction
-    {
-        public int CommitId { get; }
 
-        public SetCurrentCommitAction(int commitId)
-        {
-            CommitId = commitId;
-        }
-    }
 }

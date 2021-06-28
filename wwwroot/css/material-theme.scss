@@ -1,0 +1,9 @@
+﻿@use "sass:color";
+
+@use "@material/theme" with ( $primary: #19aa8d, $secondary: #fafafa, $error: #f44336, $background: #eee, $surface: #fff, $on-primary:#fafafa, $on-secondary: #000000 );
+
+@use "@material/shape" with ( $small-component-radius: 0px, $medium-component-radius: 0px, $large-component-radius: 0px, );
+
+@use "@material/typography" with ( $font-family: unquote("Rubik, sans-serif"), $styles-button: ( font-size: 14px, font-weight: 500, letter-spacing: 0.05em, ), );
+
+@use "material-components-web";

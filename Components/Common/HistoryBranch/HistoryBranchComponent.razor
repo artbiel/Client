@@ -7,7 +7,8 @@
         <div class="history-list">
             @foreach (var commit in Commits)
             {
-                <HistoryItemComponent Commit="commit" IsActive="commit == ActiveCommit" ToggleIsActive="SetActiveCommit" />
+                <HistoryItemComponent Commit="commit" IsActive="commit.Id == ActiveCommitId"
+                                      GetIcon="GetIcon" ToggleIsActive="SetActiveCommit" />
             }
         </div>
     </div>
@@ -15,17 +16,16 @@
 
 @code{
     [Parameter]
-    public List<ArticleCommitViewModel> Commits { get; set; }
+    public List<BaseCommit> Commits { get; set; }
 
     [Parameter]
-    public ArticleCommitViewModel ActiveCommit { get; set; }
+    public Guid ActiveCommitId { get; set; }
 
-    private void SetActiveCommit(ArticleCommitViewModel commit)
-    {
-        //ActiveCommit = commit;
-        //Console.WriteLine(ActiveCommit?.Id);
-        Dispatcher.Dispatch(new SetCurrentCommitAction(commit.Id));
-    }
+    [Parameter]
+    public Func<BaseCommit, string> GetIcon { get; set; }
+
+    [Parameter]
+    public EventCallback<BaseCommit> SetActiveCommit { get; set; }
 }
 
 <style>

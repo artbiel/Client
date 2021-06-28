@@ -1,0 +1,182 @@
+﻿@page "/workbanch/course/{courseId:guid}"
+@inherits FluxorComponent
+@inject IDispatcher Dispatcher
+@inject IState<WorkbanchCourseState> WorkbanchCourseState
+@inject NavigationManager NavigationManager
+@inject IMapper Mapper
+
+@if (WorkbanchCourseState.Value.IsLoading)
+{
+    <LoadingComponent />
+}
+else
+{
+    @if (WorkbanchCourseState.Value.Course == null)
+    {
+        <NotFoundComponent />
+    }
+    else
+    {
+        <div class="mdc-layout-grid">
+            <div class="mdc-layout-grid__inner">
+                <div class="mdc-layout-grid__cell--span-12">
+                    <MBCard AutoStyled="true"
+                            style="padding: 15px;"
+                            class="mb-ui-control">
+                        <Primary>
+                            @if (IsCourseInfoEditing)
+                            { 
+                                <div class="mdc-layout-grid__inner">
+                                    <EditForm Model="EditingCourse" class="mdc-layout-grid__cell--span-12">
+                                        <div class="mdc-layout-grid__inner">
+                                            <div class="mdc-layout-grid__cell--span-12">
+                                                <MBTextField @bind-Value="@EditingCourse.Title"
+                                                             style="width: 100%"
+                                                             Label="Title"
+                                                             TextInputStyle="@MBTextInputStyle.Outlined"
+                                                             ValidationMessageFor="@(() => EditingCourse.Title)"
+                                                             Density="MBDensity.Comfortable" />
+                                            </div>
+
+                                            <div class="mdc-layout-grid__cell--span-12">
+                                                <div style="display: flex; align-items: center;">
+                                                    <span class="mdc-typography mdc-typography--overline" style="margin-right: 10px">Image:</span>
+                                                    <RadzenUpload Multiple="false" Accept="image/*" Url="upload/multiple"
+                                                                  class="mdc-theme--primary-bg mdc-typography"
+                                                                  Progress=@(args => Console.WriteLine(args.Files.First().Name, "Images only upload")) Complete="@(() => Console.WriteLine("Completed"))" ChooseText="Select" />
+                                                </div>
+                                            </div>
+
+                                            <div class="mdc-layout-grid__cell--span-12">
+                                                <MBSelect @bind-Value="@EditingCourse.Difficulty"
+                                                          style="margin-top: 6px; width: 100%;"
+                                                          class="mdc-layout-grid__cell--span-12"
+                                                          Items="CourseDifficultyValues"
+                                                          ItemValidation="@MBItemValidation.DefaultToFirst"
+                                                          Label="Difficulty"
+                                                          SelectInputStyle="MBSelectInputStyle.Outlined" />
+                                            </div>
+                                            <div class="mdc-layout-grid__cell--span-12">
+                                                <MBTextArea @bind-Value="@EditingCourse.Description"
+                                                            style="width: 100%"
+                                                            Density="MBDensity.Compact"
+                                                            Label="Description"
+                                                            TextInputStyle="@MBTextInputStyle.Outlined"
+                                                            ValidationMessageFor="@(() => EditingCourse.Description)" />
+                                            </div>
+                                            <div class="mdc-layout-grid__cell--span-3">
+                                                <MBButton ButtonStyle="MBButtonStyle.ContainedUnelevated" class="mdc-theme--on-primary mdc-theme--primary-bg" Label="Save"
+                                                          @onclick="SaveCourseInfo" />
+                                            </div>
+                                        </div>
+                                    </EditForm>
+                                </div>
+                            }
+                            else
+                            {
+                                <div style="display: flex; flex-direction: row;">
+                                    <div class="mdc-card__media mb-card__media rounded-img">
+                                        <img src="@WorkbanchCourseState.Value.Course.ImgSrc" class="rounded-img" />
+
+                                    </div>
+                                    <div class="mb-card__autostyled" style="width: 100%;">
+                                        <div class="d-flex justify-content-between align-items-center flex-wrap" style="width: 100%;">
+                                            <h1 class="mdc-typography--headline3">@WorkbanchCourseState.Value.Course.Title</h1>
+                                            <div>
+                                                <MBButton ButtonStyle="MBButtonStyle.ContainedUnelevated" class="mdc-theme--on-primary mdc-theme--primary-bg" Label="Edit"
+                                                          @onclick="@(() => IsCourseInfoEditing = true)" />
+                                                <MBButton ButtonStyle="MBButtonStyle.ContainedUnelevated" class="mdc-theme--on-primary mdc-theme--primary-bg" Label="Publish"
+                                                          @onclick="@(() => Dispatcher.Dispatch(new EditCourseAction(WorkbanchCourseState.Value.Course)))" />
+                                            </div>
+
+                                        </div>
+                                        <h3 class="mb-card__subtitle mdc-typography mdc-typography--subtitle2">Difficulty: @WorkbanchCourseState.Value.Course.Difficulty</h3>
+                                    </div>
+                                </div>
+                                <div class="mb-card__autostyled">
+
+                                    <h6 class="mb-card__title mdc-typography mdc-typography--headline6">Description</h6>
+                                    <span class="mb-card__subtitle mdc-typography mdc-typography--body2">@WorkbanchCourseState.Value.Course.Description</span>
+                                </div>
+                            }
+
+                        </Primary>
+                    </MBCard>
+                </div>
+                <div class="mdc-layout-grid__cell--span-12">
+                    <MBCard AutoStyled="true"
+                            class="mb-ui-control">
+                        <Primary>
+                            <div>
+                                <h3 class="mdc-typography mdc-typography--headline5" style="text-align: center">Course structure</h3>
+
+                            </div>
+                            <TreeViewComponent RootRecord="WorkbanchCourseState.Value.Course.RootRecord" 
+                                               Editable="true"
+                                               FontSize="19px" />
+                        </Primary>
+                    </MBCard>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+<style>
+    .rounded-img {
+        height: 150px;
+        width: 150px;
+        object-fit: cover;
+        border-radius: 50% !important;
+    }
+
+    .rz-fileupload-buttonbar {
+        background-color: inherit;
+        padding: 0;
+    }
+
+    .rz-fileupload-choose {
+        background: inherit;
+    }
+</style>
+
+@code{
+    [Parameter]
+    public Guid CourseId { get; set; }
+
+    private bool IsCourseInfoEditing { get; set; } = false;
+
+    private CourseEditingModel EditingCourse { get; set; } = new();
+
+    MBSelectElement<Difficulty>[] CourseDifficultyValues = Enum.GetValues<Difficulty>()
+      .Select(v => new MBSelectElement<Difficulty> { Label = Enum.GetName(v), SelectedValue = v }).ToArray();
+
+    protected override void OnInitialized()
+    {
+        Dispatcher.Dispatch(new FetchWorkbanchCourseAction(CourseId));
+        WorkbanchCourseState.StateChanged += SetEditingCourse;
+        base.OnInitialized();
+    }
+
+    private void SaveCourseInfo()
+    {
+        Dispatcher.Dispatch(new EditWorkbanchCourseInfoAction(EditingCourse));
+        IsCourseInfoEditing = false;
+    }
+
+    private void SetEditingCourse(object sender, WorkbanchCourseState state)
+    {
+        if (state.Course != null)
+        {
+            EditingCourse = Mapper.Map<CourseEditingModel>(state.Course);
+        }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        WorkbanchCourseState.StateChanged -= SetEditingCourse;
+        base.Dispose(disposing);
+    }
+}
+
+

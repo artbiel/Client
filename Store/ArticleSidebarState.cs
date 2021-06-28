@@ -2,21 +2,13 @@
 
 namespace Client.Store
 {
-    public class ArticleSidebarState
-    {
-        public ArticleSidebarTab CurrentTab { get; }
-
-        public ArticleSidebarState(ArticleSidebarTab tab)
-        {
-            CurrentTab = tab;
-        }
-    }
+    public record ArticleSidebarState(ArticleSidebarTab CurrentTab);
 
     public class ArticleSidebarFeature : Feature<ArticleSidebarState>
     {
         public override string GetName() => "ArticleSidebar";
 
-        protected override ArticleSidebarState GetInitialState() => new(ArticleSidebarTab.CourseStructure);
+        protected override ArticleSidebarState GetInitialState() => new(ArticleSidebarTab.Structure);
     }
 
     public static class ArticleSidebarReducers
@@ -26,20 +18,12 @@ namespace Client.Store
             ToggleArticleSidebarTabAction action) => new ArticleSidebarState(action.Tab);
     }
 
-    public class ToggleArticleSidebarTabAction
-    {
-        public ArticleSidebarTab Tab { get; }
-
-        public ToggleArticleSidebarTabAction(ArticleSidebarTab tab)
-        {
-            Tab = tab;
-        }
-    }
+    public record ToggleArticleSidebarTabAction(ArticleSidebarTab Tab);
 
     public enum ArticleSidebarTab
     {
-        CourseStructure,
-        HistoryBranch
+        Structure,
+        History
     }
 
     public enum ArticleSidebarHistoryTab

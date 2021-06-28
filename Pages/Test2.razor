@@ -151,7 +151,7 @@
             }
         }
         Console.WriteLine("Diffwords: " + string.Join(" ", diffWords));
-        int id = new Random().Next();
+        var id = Guid.NewGuid();
         commits = commits.Append(new()
         {
             Id = id,
@@ -162,7 +162,7 @@
         //DiffModel = DiffPlex.DiffBuilder.InlineDiffBuilder.Diff(EditVal.Old, EditVal.New);
     }
 
-    void ShowCommit(int id)
+    void ShowCommit(Guid id)
     {
         List<string> current = new List<string>();
         for (int i = 0; i < commits.Count && commits[i].Id != id; i++)
@@ -184,8 +184,8 @@
 
     string[] CurrentWords = new string[0];
 
-    List<ArticleCommitViewModel>
-    commits = new List<ArticleCommitViewModel>
+    List<ArticleCommitVM>
+    commits = new List<ArticleCommitVM>
         ();
 
     protected override void OnInitialized()

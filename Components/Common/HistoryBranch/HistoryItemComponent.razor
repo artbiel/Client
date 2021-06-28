@@ -4,11 +4,11 @@
     <div @onclick="() => { if (!IsActive) ToggleIsActive.InvokeAsync(Commit); }" class="history-item-header">
         <div class=@("history-icon status-intransit d-flex align-items-center justify-content-center"
                      + (IsActive ? " history-icon-active" : ""))>
-            <RadzenIcon Icon="@icon"></RadzenIcon>
+            <RadzenIcon Icon="@GetIcon(Commit)"></RadzenIcon>
         </div>
-        <div class="history-title">@Commit.Title</div>
+        <div class="history-title mdc-typography">@Commit.Title</div>
     </div>
-    <div class="history-content">
+    <div class="history-content mdc-typography">
         @if (IsActive)
         {
             <div class="history-author"><span>by</span> @Commit.CreatedBy</div>
@@ -19,9 +19,17 @@
             <div class="history-description">
                 @Commit.Description
             </div>
-            <hr />
         }
     </div>
+
+    @if (IsActive)
+    {
+        <div style="width: 100%; padding-top: 5px;">
+            <MBButton class="mdc-theme--on-primary mdc-theme--primary-bg" Label="Apply"></MBButton>
+            <MBButton class="mdc-theme--on-secondary mdc-theme--secondary-bg" Label="Reject"></MBButton>
+        </div>
+    }
+    <hr />
 </div>
 
 <style>
@@ -44,7 +52,6 @@
 
     .history-item .history-title {
         font-size: 17px;
-        font-weight: 500;
     }
 
     .history-item .history-content {
@@ -85,7 +92,7 @@
         border-radius: 50%;
         border: 1px solid #e5e5e5;
         color: #B2B2B2;
-        background: @Theme.BackgroundOptions.Body;
+        background: white;
     }
 
         .history-item .history-icon i {
@@ -103,34 +110,28 @@
 </style>
 
 @code {
-    [CascadingParameter(Name = "Theme")]
-    public Theme Theme { get; set; }
 
     [Parameter]
-    public ArticleCommitViewModel Commit { get; set; }
+    public BaseCommit Commit { get; set; }
 
     [Parameter]
     public bool IsActive { get; set; }
 
     [Parameter]
-    public EventCallback<ArticleCommitViewModel> ToggleIsActive { get; set; }
+    public EventCallback<BaseCommit> ToggleIsActive { get; set; }
+
+    [Parameter]
+    public Func<BaseCommit, string> GetIcon { get; set; }
 
     private string icon = "";
 
-    protected override void OnParametersSet()
-    {
-        icon = Commit.Type switch
-        {
-            ArticleCommitType.Initital => "flag",
-            ArticleCommitType.Correction => "edit",
-            ArticleCommitType.Addition => "add",
-            ArticleCommitType.Typo => "title",
-            ArticleCommitType.VersionChanged => "fiber_new",
-            _ => ""
-        };
-        if (Commit.CommitState == CommitState.Developing)
-            icon = "code";
-        base.OnParametersSet();
-    }
+    //protected override void OnParametersSet()
+    //{
+
+
+    //    if (Commit.CommitState == CommitState.Unsent)
+    //        icon = "code";
+    //    base.OnParametersSet();
+    //}
 }
 

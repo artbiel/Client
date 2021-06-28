@@ -1,0 +1,67 @@
+﻿@page "/workbanch"
+@inherits FluxorComponent
+@inject IState<WorkbanchState> WorkbanchState
+@inject NavigationManager NavigationManager
+@inject IDispatcher Dispatcher
+
+<div class="mdc-layout-grid">
+    <div class="mdc-layout-grid__inner">
+        <div class="mdc-layout-grid__cell--span-12 d-flex justify-content-between align-items-center flex-wrap">
+            <h1 class="mdc-typography--headline2">Workbanch</h1>
+            <MBButton ButtonStyle="MBButtonStyle.ContainedUnelevated" LeadingIcon="add" class="mdc-theme--on-primary mdc-theme--primary-bg" Label="Create"
+                      @onclick="async () => await NewItemDialog.ShowAsync()" />
+        </div>
+        <MBDebouncedTextField Value="@WorkbanchState.Value.SearchString"
+                              ValueChanged="(string val) => Dispatcher.Dispatch(new SetWorkbanchSearchStringAction(val))"
+                              class="mdc-layout-grid__cell--span-12"
+                              DebounceInterval="@debouncedInterval"
+                              Label="Search"
+                              TextInputStyle="MBTextInputStyle.Outlined"
+                              Density="MBDensity.Comfortable" />
+        @*<MBSelect Value="WorkbanchState.Value.SearchType!"
+                  ValueChanged="(WorkbanchItemType? type) => Dispatcher.Dispatch(new SetWorkbanchSearchTypeAction(type))"
+                  TItem="Nullable<WorkbanchItemType>"
+                  class="mdc-layout-grid__cell--span-2"
+                  Items="SearchTypeValues"
+                  ItemValidation="@MBItemValidation.NoSelection"
+                  Density="MBDensity.Comfortable"
+                  SelectInputStyle="MBSelectInputStyle.Outlined" />*@
+        @if (WorkbanchState.Value.IsLoading)
+        {
+            <LoadingComponent />
+        }
+        else
+        {
+            foreach (var item in WorkbanchState.Value.Items)
+            {
+                <div class="mdc-layout-grid__cell--span-12">
+                    <WorkbanchItemComponent Item="item"/>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+
+<NewWorkbanchItemDialogComponent @ref="NewItemDialog" />
+
+@code {
+    private NewWorkbanchItemDialogComponent NewItemDialog;
+
+    private int debouncedInterval = 500;
+
+    //MBSelectElement<WorkbanchItemType?>[] SearchTypeValues = Enum.GetValues<WorkbanchItemType>()
+    //    .Select(v => new MBSelectElement<WorkbanchItemType?> { Label = Enum.GetName(v), SelectedValue = v })
+    //    .Prepend(new() { Label = "All", SelectedValue = null }).ToArray();
+
+    protected override void OnInitialized()
+    {
+        FetchItems();
+        base.OnInitialized();
+    }
+
+    private void FetchItems()
+    {
+        Dispatcher.Dispatch(new FetchWorkbanchItemsAction(WorkbanchState.Value.SearchString));
+    }
+}

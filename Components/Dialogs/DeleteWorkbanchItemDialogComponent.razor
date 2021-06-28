@@ -1,0 +1,49 @@
+﻿@inject IDispatcher Dispatcher
+
+<MBConfirmationDialog ActionPhrase="to delete item"
+                      @ref="@ConfirmationDialog"
+                      Title="Delete Item" ConfirmationPhrase="@Item?.Title">
+    <Body>
+        <p>Are you sure want to delete @(Item != null ? Enum.GetName(Item.Type).ToLower() : "") "@Item?.Title"?</p>
+    </Body>
+    <UnconfirmedButtons>
+        <MBButton DialogAction="delete"
+                  Label="Delete"
+                  Disabled="true"
+                  LeadingIcon="delete" />
+        <MBButton DialogAction="cancel"
+                  Label="Cancel"
+                  LeadingIcon="close" />
+    </UnconfirmedButtons>
+    <ConfirmedButtons>
+        <MBButton DialogAction="delete"
+                  Label="Delete"
+                  LeadingIcon="delete"
+                  @onclick="Submit" />
+        <MBButton DialogAction="cancel"
+                  Label="Cancel"
+                  LeadingIcon="close" />
+    </ConfirmedButtons>
+</MBConfirmationDialog>
+
+@code {
+    private WorkbanchItemVM Item { get; set; }
+
+    private MBConfirmationDialog ConfirmationDialog;
+
+    private void Submit()
+    {
+        Dispatcher.Dispatch(new DeleteWorkBanchItemAction(Item.Id));
+    }
+
+    public void SetItem(WorkbanchItemVM item)
+    {
+        Item = item;
+        StateHasChanged();
+    }
+
+    public async Task ShowAsync()
+    {
+        await ConfirmationDialog.ShowAsync();
+    }
+}

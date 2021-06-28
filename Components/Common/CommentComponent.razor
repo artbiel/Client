@@ -1,0 +1,59 @@
+﻿<div class="comment-wrapper">
+    <div style="display: flex; align-items: center; justify-content: center; padding: 10px;">
+        <MBIcon IconName="face" style="font-size: 40px; margin-right: 25px;" />
+        <div class="comment-info">
+            <div class="mb-card__title mdc-typography mdc-typography--headline6">@Comment.UserName</div>
+            <div class="mb-card__subtitle mdc-typography mdc-typography--overline">@Comment.CreatedAt.ToString("dd MMMM yyyy HH:mm")</div>
+            <div class="mdc-typography mdc-typography--body1">
+                @Comment.Content
+            </div>
+        </div>
+    </div>
+    <MBButton ButtonStyle="MBButtonStyle.Outlined" Label="Reply" class="reply-button"
+              Density="MBDensity.Minus1" @onclick="async () => await NewCommentDialog.ShowAsync()" />
+
+</div>
+@if (Comment.Children?.Count > 0)
+{
+    <div style="margin-left: 30px;">
+        @foreach (var comment in Comment.Children.Reverse<CommentVM>())
+        {
+            <CommentComponent Comment="comment" OnNewCommentAdded="OnNewCommentAdded" />
+        }
+    </div>
+}
+
+<NewCommentDialogComponent @ref="NewCommentDialog" ParentId="Comment.Id" OnCommentAdded="OnNewCommentAdded" />
+
+<style>
+    .comment-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .reply-button{
+        visibility: hidden;
+        opacity: 0;
+        transition: 0.2s;
+    }
+
+    .comment-wrapper:hover .reply-button{
+        visibility: visible;
+        opacity: 1;
+    }
+
+    .comment-info > div{
+        line-height: 20px;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public EventCallback<NewCommentVM> OnNewCommentAdded { get; set; }
+
+    [Parameter]
+    public CommentVM Comment { get; set; }
+
+    private NewCommentDialogComponent NewCommentDialog;
+}

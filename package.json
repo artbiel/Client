@@ -1,0 +1,16 @@
+{
+  "name": "client",
+  "version": "0.0.0",
+  "description": "NPM build steps",
+  "scripts": {
+    "build-material": "dart-sass --no-color --unicode --style=expanded --load-path=node_modules --no-source-map css/material-theme.scss wwwroot/css/material-theme.css",
+    "build-min-material": "dart-sass --no-color --unicode --style=compressed --load-path=node_modules --no-source-map wwwroot/css/material-theme.scss wwwroot/css/material-theme.min.css"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "material-components-web": "9.0.0",
+    "dart-sass": "^1.25.0"
+  }
+}

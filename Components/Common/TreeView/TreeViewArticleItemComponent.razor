@@ -1,28 +1,39 @@
 ﻿@namespace Client.Components.Common
-@inject IState<DevModeState> DevModeState
 @inject IState<CourseState> CourseState
 @inject IDispatcher Dispatcher
 
-<DropTarget T="RecordMainInfoViewModel" Drop="(record) => Dispatcher.Dispatch(new MoveCourseRecordAction(record, null, Record))">
-    <Draggable Data="Record">
-        <div class=@("node-content" + (ActiveRecords.Any(r => r.Id == Record.Id) ? " active" : ""))>
-            <NavLink class="node-content-title" href=@($"/courses/{CourseState.Value.CurrentCourse.Id}/{Record.TargetId}")>
-                <i class="fa fa-file-text-o"></i>
-                <span>@Record.Name</span>
-            </NavLink>
-            @if (DevModeState.Value.Enabled)
-            {
+@if (Editable)
+{
+    <DropTarget T="RecordVM" Drop="(record) => Dispatcher.Dispatch(new MoveWorkbanchCourseRecordAction(record, null, Record))">
+        <Draggable Data="Record">
+            <div class=@("node-content" + (ActiveRecords != null && ActiveRecords.Any(r => r.Id == Record.Id) ? " active" : ""))>
+                <NavLink class="node-content-title" href=@($"/workbanch/article/{Record.Id}")>
+                    <MBIcon IconName="article"></MBIcon>
+                    <span class="mdc-typography--overline">@Record.Title</span>
+                </NavLink>
                 <TreeViewItemMenuComponent WithEditing="false" WithAdding="false"
-                                           OnDelete="() => Dispatcher.Dispatch(new RemoveCourseRecordAction(Record))" />
-            }
-        </div>
-    </Draggable>
-</DropTarget>
+                                           Record="Record" />
+            </div>
+        </Draggable>
+    </DropTarget>
+}
+else
+{
+    <div class=@("node-content" + (ActiveRecords != null && ActiveRecords.Any(r => r.Id == Record.Id) ? " active" : ""))>
+        <NavLink class="node-content-title" href=@($"/courses/{CourseState.Value.CurrentCourse.Id}/{Record.Id}")>
+            <MBIcon IconName="article"></MBIcon>
+            <span class="mdc-typography--overline">@Record.Title</span>
+        </NavLink>
+    </div>
+}
 
 @code {
     [Parameter]
-    public RecordMainInfoViewModel Record { get; set; }
+    public RecordVM Record { get; set; }
 
     [Parameter]
-    public List<RecordMainInfoViewModel> ActiveRecords { get; set; }
+    public List<RecordVM> ActiveRecords { get; set; }
+
+    [CascadingParameter]
+    public bool Editable { get; set; }
 }

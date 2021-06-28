@@ -1,0 +1,57 @@
+﻿@inject IDispatcher Dispatcher
+
+<MBDialog @ref="@NewItemDialog"
+          Title="Create New Item">
+    <Body>
+        <EditForm Model="newItem" OnValidSubmit="Submit">
+            <DataAnnotationsValidator />
+            <div class="mdc-layout-grid__inner">
+                <div class="mdc-layout-grid__cell--span-12">
+                    <MBSelect @bind-Value="@newItem.Type"
+                              style="margin-top: 6px; width: 100%;"
+                              class="mdc-layout-grid__cell--span-12"
+                              Items="commitTypeValues"
+                              ItemValidation="@MBItemValidation.DefaultToFirst"
+                              Label="Type"
+                              SelectInputStyle="MBSelectInputStyle.Outlined" />
+                </div>
+                <div class="mdc-layout-grid__cell--span-12">
+                    <MBTextField @bind-Value="@newItem.Title"
+                                 style="width: 100%"
+                                 Label="Name"
+                                 TextInputStyle="@MBTextInputStyle.Outlined"
+                                 ValidationMessageFor="@(() => newItem.Title)"
+                                 Density="MBDensity.Comfortable" />
+                </div>
+            </div>
+
+            <div class="mdc-layout-grid__cell--span-12" style="text-align: right;">
+                <MBButton Label="Create" type="submit"></MBButton>
+                <MBButton Label="Cancel" type="reset" @onclick="@(async () => { await NewItemDialog.HideAsync(); })" ButtonStyle="@MBButtonStyle.Text"></MBButton>
+            </div>
+        </EditForm>
+    </Body>
+</MBDialog>
+
+@code {
+    private MBDialog NewItemDialog;
+
+    private WorkbanchItemVM newItem = new WorkbanchItemVM();
+
+    MBSelectElement<WorkbanchItemType>[] commitTypeValues = Enum.GetValues<WorkbanchItemType>()
+       .Select(v => new MBSelectElement<WorkbanchItemType> { Label = Enum.GetName(v), SelectedValue = v }).ToArray();
+
+    private async Task Submit()
+    {
+        Dispatcher.Dispatch(new CreateNewWorkbanchItemAction(newItem.Title, newItem.Type));
+        newItem = new() { 
+            Id = Guid.NewGuid(),
+            Title = "",
+            Type = default
+        };
+        StateHasChanged();
+        await NewItemDialog.HideAsync();
+    }
+
+    public async Task ShowAsync() => await NewItemDialog.ShowAsync();
+}

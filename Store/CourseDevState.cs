@@ -10,9 +10,9 @@
 //{
 //    public class CourseDevState
 //    {
-//        public List<RecordMainInfoViewModel> Records { get; }
+//        public List<RecordVM> Records { get; }
 
-//        public CourseDevState(List<RecordMainInfoViewModel> records)
+//        public CourseDevState(List<RecordVM> records)
 //        {
 //            Records = records ?? new();
 //        }
@@ -32,10 +32,10 @@
 //        {
 //            if (state.Records.Count > 0)
 //                return new CourseDevState(state.Records);
-//            var list = new List<RecordMainInfoViewModel>();
+//            var list = new List<RecordVM>();
 //            foreach (var item in action.Course.Records)
 //            {
-//                list.Add((RecordMainInfoViewModel)item.Clone());
+//                list.Add((RecordVM)item.Clone());
 //            }
 //            foreach (var item in list)
 //            {
@@ -118,10 +118,10 @@
 
 //    public class AddCourseDevRecordAction
 //    {
-//        public RecordMainInfoViewModel Record { get; }
-//        public RecordMainInfoViewModel ParentRecord { get; }
+//        public RecordVM Record { get; }
+//        public RecordVM ParentRecord { get; }
 
-//        public AddCourseDevRecordAction(RecordMainInfoViewModel record, RecordMainInfoViewModel parentRecord)
+//        public AddCourseDevRecordAction(RecordVM record, RecordVM parentRecord)
 //        {
 //            Record = record;
 //            ParentRecord = parentRecord;
@@ -130,9 +130,9 @@
 
 //    public class EditCourseDevRecordAction
 //    {
-//        public RecordMainInfoViewModel Record { get; }
+//        public RecordVM Record { get; }
 
-//        public EditCourseDevRecordAction(RecordMainInfoViewModel record)
+//        public EditCourseDevRecordAction(RecordVM record)
 //        {
 //            Record = record;
 //        }
@@ -140,9 +140,9 @@
 
 //    public class RemoveCourseDevRecordAction
 //    {
-//        public RecordMainInfoViewModel Record { get; }
+//        public RecordVM Record { get; }
 
-//        public RemoveCourseDevRecordAction(RecordMainInfoViewModel record)
+//        public RemoveCourseDevRecordAction(RecordVM record)
 //        {
 //            Record = record;
 //        }
@@ -150,12 +150,12 @@
 
 //    public class MoveCourseDevRecordAction
 //    {
-//        public RecordMainInfoViewModel Record { get; }
-//        public RecordMainInfoViewModel PreviousElement { get; }
-//        public RecordMainInfoViewModel DestinationParent { get; }
+//        public RecordVM Record { get; }
+//        public RecordVM PreviousElement { get; }
+//        public RecordVM DestinationParent { get; }
 
-//        public MoveCourseDevRecordAction(RecordMainInfoViewModel record, RecordMainInfoViewModel destinationParent,
-//            RecordMainInfoViewModel previousElement)
+//        public MoveCourseDevRecordAction(RecordVM record, RecordVM destinationParent,
+//            RecordVM previousElement)
 //        {
 //            Record = record;
 //            DestinationParent = destinationParent;

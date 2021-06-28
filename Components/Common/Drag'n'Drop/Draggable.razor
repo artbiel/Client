@@ -1,6 +1,7 @@
 ﻿@namespace Client.Components.Common
 @typeparam T
 @inject DragAndDropService DragAndDropService
+
 <div draggable="true" @ondragstart="@OnDragStart">
     @ChildContent
 </div>
@@ -16,7 +17,6 @@
 
     void OnDragStart()
     {
-        // Notify the DragAndDropService what the current Data and Zone are.
         DragAndDropService.StartDrag(Data, Zone);
     }
 }

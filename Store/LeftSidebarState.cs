@@ -2,15 +2,7 @@
 
 namespace Client.Store
 {
-    public class LeftSidebarState
-    {
-        public bool IsDisplay { get; }
-
-        public LeftSidebarState(bool isDisplay)
-        {
-            IsDisplay = isDisplay;
-        }
-    }
+    public record LeftSidebarState(bool IsDisplay);
 
     public class LeftSidebarFeature : Feature<LeftSidebarState>
     {
@@ -26,5 +18,5 @@ namespace Client.Store
             new LeftSidebarState(!state.IsDisplay);
     }
 
-    public class ToggleLeftSidebarAction { }
+    public record ToggleLeftSidebarAction();
 }

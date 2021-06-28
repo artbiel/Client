@@ -1,37 +1,26 @@
 ﻿using DiffPlex.Model;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Client.Models
 {
-    public class ArticleCommitViewModel
+    public class ArticleCommitVM : BaseCommit
     {
-        public int Id { get; set; }
-        public string Title { get; set; }
-        public string CreatedBy { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public string Description { get; set; }
+        [Required]
         public string[] DiffWords { get; set; }
-        public CommitState CommitState { get; set; }
-        public ArticleCommitType Type { get; set; }
+        [Required]
         public List<ArticleDiffBlock> DiffBlocks { get; set; }
-        public ArticleCommitViewModel PrevCommit { get; set; }
+        [Required]
+        public ArticleCommitType Type { get; set; }
     }
 
     public enum ArticleCommitType
     {
-        Initital,
         Typo,
         VersionChanged,
         Correction,
         Addition
-    }
-
-    public enum CommitState
-    {
-        Developing,
-        Checking,
-        Commited
     }
 
     public class ArticleDiffBlock

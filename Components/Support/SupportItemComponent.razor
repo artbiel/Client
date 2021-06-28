@@ -1,0 +1,43 @@
+﻿@inject NavigationManager NavigationManager
+
+<MBCard AutoStyled="true"
+        @onclick="@(() => NavigationManager.NavigateTo($"/support/{Item.Id}"))"
+        class="mb-ui-control">
+    <PrimaryAction>
+        <div class="mb-card__autostyled d-flex align-items-center flex-wrap" style="width: 100%;">
+            <div style="display: flex; align-items: center; justify-content: center; padding: 10px;">
+                <MBIcon IconName="@GetIcon(Item.Type)" style="font-size: 40px;" />
+            </div>
+            <div>
+                <h2 class="mb-card__title mdc-typography mdc-typography--headline6">@Item.Title</h2>
+                <h3 class="mb-card__subtitle mdc-typography mdc-typography--subtitle2" style="color: @GetColor(Item.Status)">
+                    @Enum.GetName(Item.Status)
+                </h3>
+            </div>
+        </div>
+    </PrimaryAction>
+</MBCard>
+
+@code {
+    [Parameter]
+    public SupportApplicationMainInfoVM Item { get; set; }
+
+    [Parameter]
+    public bool IsActive { get; set; }
+
+    private string GetIcon(SupportApplicationType type) => type switch
+    {
+        SupportApplicationType.Proposal => "light_mode",
+        SupportApplicationType.Bug => "bug_report",
+        SupportApplicationType.Question => "help_outline",
+        _ => ""
+    };
+
+    private string GetColor(SupportApplicationStatus status) => status switch
+    {
+        SupportApplicationStatus.Waiting => "orange",
+        SupportApplicationStatus.Processing => "green",
+        SupportApplicationStatus.Completed => "gray",
+        _ => ""
+    };
+}

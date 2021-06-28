@@ -1,4 +1,5 @@
-﻿using Client.Models;
+﻿using Client.Infrastructure;
+using Client.Models;
 using Client.Services;
 using Fluxor;
 using System;
@@ -8,165 +9,66 @@ using System.Threading.Tasks;
 
 namespace Client.Store
 {
-    public class CourseState
-    {
-        public bool IsLoading { get; }
-        public CourseFullInfoViewModel CurrentCourse { get; }
-        public List<RecordMainInfoViewModel> ActiveRecords { get; }
-
-        public CourseState(bool isLoading, CourseFullInfoViewModel currentCourse, List<RecordMainInfoViewModel> activeRecords)
-        {
-            IsLoading = isLoading;
-            CurrentCourse = currentCourse ?? new();
-            ActiveRecords = activeRecords ?? new();
-        }
-    }
+    public record CourseState(bool IsLoading, CourseFullInfoVM CurrentCourse, List<CourseCommitMainInfoVM> Commits,
+        List<RecordVM> ActiveRecords);
 
     public class CourseFeature : Feature<CourseState>
     {
         public override string GetName() => "Course";
 
-        protected override CourseState GetInitialState() => new CourseState(false, null, null);
+        protected override CourseState GetInitialState() => new CourseState(false, null, null, null);
     }
 
     public static class CourseReducers
     {
         [ReducerMethod]
         public static CourseState ReduceFetchCourseAction(CourseState state, FetchCourseAction action) =>
-            new CourseState(true, state.CurrentCourse, state.ActiveRecords);
+            new CourseState(true, state.CurrentCourse, state.Commits, state.ActiveRecords);
 
         [ReducerMethod]
         public static CourseState ReduceSetCourseAction(CourseState state, SetCourseAction action)
         {
-            if (action.DevMode && action.Course != null)
-            {
-                foreach (var record in action.Course.Records)
-                {
-                    if (record.Children != null)
-                    {
-                        var list = new List<RecordMainInfoViewModel>(action.Course.Records.Count);
-                        foreach (var child in record.Children)
-                        {
-                            list.Add(action.Course.Records.Find(r => r.Id == child.Id));
-                        }
-                        record.Children = list;
-                    }
-                }
-            }
-            return new CourseState(false, action.Course, null);
+            return new CourseState(false, action.Course, state.Commits, null);
+        }
+
+        [ReducerMethod]
+        public static CourseState ReduceFetchCourseHistoryResultAction(CourseState state, FetchCourseHistoryResultAction action)
+        {
+            return new CourseState(state.IsLoading, state.CurrentCourse, action.Commits, state.ActiveRecords);
         }
 
         [ReducerMethod]
         public static CourseState ReduceSetActiveRecordsAction(CourseState state, SetActiveRecordsAction action)
         {
-            if (state.CurrentCourse?.Records != null)
+            if (state.CurrentCourse?.RootRecord != null)
             {
-                return new CourseState(state.IsLoading, state.CurrentCourse, GetActiveRecords(state.CurrentCourse.Records, action.ArticleId));
+                return new CourseState(state.IsLoading, state.CurrentCourse, state.Commits, GetActiveRecords(state.CurrentCourse.RootRecord, action.ArticleId));
             }
-            return new CourseState(state.IsLoading, state.CurrentCourse, state.ActiveRecords);
+            return new CourseState(state.IsLoading, state.CurrentCourse, state.Commits, state.ActiveRecords);
         }
 
-        [ReducerMethod]
-        public static CourseState ReduceAddCourseRecordAction(CourseState state, AddCourseRecordAction action)
+        private static List<RecordVM> GetActiveRecords(RecordVM rootRecord, Guid currentId)
         {
-            if (state.CurrentCourse.Records.Contains(action.ParentRecord))
+            if (rootRecord == null)
             {
-                if (action.ParentRecord.Children == null)
-                    action.ParentRecord.Children = new();
-                if (action.Record.Type == RecordType.Article)
-                    action.Record.TargetId = new Random().Next();
-                else if (action.Record.Children == null)
-                    action.Record.Children = new();
-                action.ParentRecord.Children = new(action.ParentRecord.Children.Prepend(action.Record));
-                state.CurrentCourse.Records.Add(action.Record);
+                throw new ArgumentNullException(nameof(rootRecord));
             }
-            return new CourseState(state.IsLoading, state.CurrentCourse, state.ActiveRecords);
-        }
+            IEnumerable<RecordVM> activeList = new List<RecordVM>();
 
-        [ReducerMethod]
-        public static CourseState ReduceEditCourseRecordAction(CourseState state, EditCourseRecordAction action)
-        {
-            var record = state.CurrentCourse.Records.Find(r => r.Id == action.Record.Id);
-            if (record != null)
-            {
-                record = action.Record;
-            }
-            return new CourseState(state.IsLoading, state.CurrentCourse, state.ActiveRecords);
-        }
-
-        [ReducerMethod]
-        public static CourseState ReduceRemoveCourseRecordAction(CourseState state, RemoveCourseRecordAction action)
-        {
-            state.CurrentCourse.Records.Remove(action.Record);
-            state.CurrentCourse.Records.FirstOrDefault(r => r.Children != null && r.Children.Contains(action.Record))?.Children.Remove(action.Record);
-            return new CourseState(state.IsLoading, state.CurrentCourse, state.ActiveRecords);
-        }
-
-        [ReducerMethod]
-        public static CourseState ReduceMoveCourseRecordAction(CourseState state, MoveCourseRecordAction action)
-        {
-            if (state.CurrentCourse.Records.Contains(action.Record))
-            {
-                if (state.CurrentCourse.Records.Contains(action.PreviousElement))
-                {
-                    var destParent = state.CurrentCourse.Records.Contains(action.DestinationParent) ? action.DestinationParent :
-                        state.CurrentCourse.Records.Find(r => r.Children != null && r.Children.Contains(action.PreviousElement));
-                    state.CurrentCourse.Records.Find(r => r.Children != null && r.Children.Contains(action.Record)).Children.Remove(action.Record);
-                    destParent.Children.Insert(destParent.Children.IndexOf(action.PreviousElement) + 1, action.Record);
-                }
-                else
-                {
-                    if (state.CurrentCourse.Records.Contains(action.DestinationParent) && action.Record != action.DestinationParent)
-                    {
-                        state.CurrentCourse.Records.Find(r => r.Children != null && r.Children.Contains(action.Record)).Children.Remove(action.Record);
-                        action.DestinationParent.Children = action.DestinationParent.Children.Prepend(action.Record).ToList();
-                    }
-                }
-            }
-            return new CourseState(state.IsLoading, state.CurrentCourse, state.ActiveRecords);
-        }
-
-        private static List<RecordMainInfoViewModel> GetActiveRecords(List<RecordMainInfoViewModel> records, int currentId)
-        {
-            if (records == null)
-            {
-                throw new ArgumentNullException(nameof(records));
-            }
-            IEnumerable<RecordMainInfoViewModel> activeList = new List<RecordMainInfoViewModel>();
-            var active = records.FirstOrDefault(rec => rec.TargetId == currentId);
+            var active = rootRecord.Find(currentId);
             while (active != null)
             {
                 activeList = activeList.Prepend(active);
-                active = records.FirstOrDefault(r => r.Children != null && r.Children.Contains(active));
+                active = rootRecord.Find(r => r.Children != null && r.Children.Contains(active));
             }
             return activeList.ToList();
         }
 
     }
 
-    public class FetchCourseAction
-    {
-        public int Id { get; }
-        public bool DevMode { get; set; }
+    public record FetchCourseAction(Guid Id);
 
-        public FetchCourseAction(int id, bool devMode)
-        {
-            Id = id;
-            DevMode = devMode;
-        }
-    }
-
-    public class SetCourseAction
-    {
-        public CourseFullInfoViewModel Course { get; }
-        public bool DevMode { get; set; }
-
-        public SetCourseAction(CourseFullInfoViewModel course, bool devMode)
-        {
-            Course = course;
-            DevMode = devMode;
-        }
-    }
+    public record SetCourseAction(CourseFullInfoVM Course);
 
     public class FecthCourseActionEffect : Effect<FetchCourseAction>
     {
@@ -179,155 +81,50 @@ namespace Client.Store
 
         public override async Task HandleAsync(FetchCourseAction action, IDispatcher dispatcher)
         {
-            var course = await _courseService.GetCourse(action.Id, action.DevMode);
-            dispatcher.Dispatch(new SetCourseAction(course, action.DevMode));
+            var course = await _courseService.GetCourse(action.Id);
+            dispatcher.Dispatch(new SetCourseAction(course));
+            dispatcher.Dispatch(new FetchCourseHistoryAction(action.Id));
         }
     }
 
-    public class SetActiveRecordsAction
+    public record SetActiveRecordsAction(Guid ArticleId);
+
+    public record EditCourseAction(CourseFullInfoVM Course);
+
+    public class EditCourseActionEffect : Effect<EditCourseAction>
     {
-        public int ArticleId { get; }
+        private readonly CourseService _courseService;
 
-        public SetActiveRecordsAction(int articleId)
+        public EditCourseActionEffect(CourseService courseService)
         {
-            ArticleId = articleId;
-        }
-    }
-
-    public class AddCourseRecordAction
-    {
-        public RecordMainInfoViewModel Record { get; }
-        public RecordMainInfoViewModel ParentRecord { get; }
-
-        public AddCourseRecordAction(RecordMainInfoViewModel record, RecordMainInfoViewModel parentRecord)
-        {
-            Record = record;
-            ParentRecord = parentRecord;
-        }
-    }
-
-
-
-    public class AddCourseRecordActionEffect : Effect<AddCourseRecordAction>
-    {
-        private IState<CourseState> _state;
-        private ArticleService _articleService;
-        private CourseService _courseService;
-
-        public AddCourseRecordActionEffect(IState<CourseState> state, ArticleService articleService, CourseService courseService)
-        {
-            _state = state;
-            _articleService = articleService;
             _courseService = courseService;
         }
 
-        public override async Task HandleAsync(AddCourseRecordAction action, IDispatcher dispatcher)
+        public override async Task HandleAsync(EditCourseAction action, IDispatcher dispatcher)
         {
-            if (_state.Value.CurrentCourse.Records.Contains(action.Record))
-            {
-                await _courseService.SaveCourseToLocalStorage(_state.Value.CurrentCourse);
-                if (action.Record.Type == RecordType.Article)
-                    dispatcher.Dispatch(new AddArticleAction(action.Record.TargetId, action.Record.Name));
-            }
+            await _courseService.EditCourse(action.Course);
         }
     }
 
-    public class EditCourseRecordAction
+    public record FetchCourseHistoryAction(Guid Id);
+
+    public record FetchCourseHistoryResultAction(List<CourseCommitMainInfoVM> Commits);
+
+    public class FetchCourseHistoryActionEffect : Effect<FetchCourseHistoryAction>
     {
-        public RecordMainInfoViewModel Record { get; }
+        private readonly CourseService _courseService;
 
-        public EditCourseRecordAction(RecordMainInfoViewModel record)
+        public FetchCourseHistoryActionEffect(CourseService courseService)
         {
-            Record = record;
-        }
-    }
-
-    public class EditCourseRecordActionEffect : Effect<EditCourseRecordAction>
-    {
-        private IState<CourseState> _state;
-        private CourseService _courseService;
-
-        public EditCourseRecordActionEffect(IState<CourseState> state, CourseService courseService)
-        {
-            _state = state;
             _courseService = courseService;
         }
 
-        public override async Task HandleAsync(EditCourseRecordAction action, IDispatcher dispatcher)
+        public override async Task HandleAsync(FetchCourseHistoryAction action, IDispatcher dispatcher)
         {
-            if (_state.Value.CurrentCourse.Records.Contains(action.Record))
-            {
-                await _courseService.SaveCourseToLocalStorage(_state.Value.CurrentCourse);
-            }
+            var history = await _courseService.GetHistory(action.Id);
+            dispatcher.Dispatch(new FetchCourseHistoryResultAction(history));
         }
     }
 
-    public class RemoveCourseRecordAction
-    {
-        public RecordMainInfoViewModel Record { get; }
-
-        public RemoveCourseRecordAction(RecordMainInfoViewModel record)
-        {
-            Record = record;
-        }
-    }
-
-    public class RemoveCourseRecordActionEffect : Effect<RemoveCourseRecordAction>
-    {
-        private IState<CourseState> _state;
-        private CourseService _courseService;
-        private ArticleService _articleService;
-
-        public RemoveCourseRecordActionEffect(IState<CourseState> state, CourseService courseService, ArticleService articleService)
-        {
-            _state = state;
-            _courseService = courseService;
-            _articleService = articleService;
-        }
-
-        public override async Task HandleAsync(RemoveCourseRecordAction action, IDispatcher dispatcher)
-        {
-            if (!_state.Value.CurrentCourse.Records.Contains(action.Record))
-            {
-                await _courseService.SaveCourseToLocalStorage(_state.Value.CurrentCourse);
-                if (action.Record.Type == RecordType.Article)
-                    dispatcher.Dispatch(new RemoveArticleAction(action.Record.Id));
-            }
-        }
-    }
-
-    public class MoveCourseRecordAction
-    {
-        public RecordMainInfoViewModel Record { get; }
-        public RecordMainInfoViewModel PreviousElement { get; }
-        public RecordMainInfoViewModel DestinationParent { get; }
-
-        public MoveCourseRecordAction(RecordMainInfoViewModel record, RecordMainInfoViewModel destinationParent,
-            RecordMainInfoViewModel previousElement)
-        {
-            Record = record;
-            DestinationParent = destinationParent;
-            PreviousElement = previousElement;
-        }
-    }
-
-    public class MoveCourseRecordActionEffect : Effect<MoveCourseRecordAction>
-    {
-        private IState<CourseState> _state;
-        private CourseService _courseService;
-
-        public MoveCourseRecordActionEffect(IState<CourseState> state, CourseService courseService)
-        {
-            _state = state;
-            _courseService = courseService;
-        }
-
-        public override async Task HandleAsync(MoveCourseRecordAction action, IDispatcher dispatcher)
-        {
-            if (_state.Value.CurrentCourse.Records.Contains(action.Record))
-            {
-                await _courseService.SaveCourseToLocalStorage(_state.Value.CurrentCourse);
-            }
-        }
-    }
+    //public record AddCourseRecordAction(RecordVM Record, RecordVM ParentRecord);
 }

@@ -1,0 +1,178 @@
+﻿@page "/workbanch/article/{articleId:guid}"
+@inherits FluxorComponent
+@inject IState<WorkbanchArticleState> WorkbanchArticleState
+@inject NavigationManager NavigationManager
+@inject IDispatcher Dispatcher
+
+@if (WorkbanchArticleState.Value.IsLoading)
+{
+    <LoadingComponent />
+}
+else
+{
+    if (WorkbanchArticleState.Value.Article == null)
+    {
+        <NotFoundComponent />
+    }
+    else
+    {
+        <div class="d-flex justify-content-between align-items-center flex-wrap" style="margin-bottom: 10px">
+            <div class="d-flex align-items-center">
+                @if (isTitleEditing)
+                {
+                    <EditForm EditContext="new EditContext(articleEditTitle)" OnValidSubmit="OnEditTitleSubmit">
+                        <MBTextField @bind-Value="@articleEditTitle"
+                                     Label="Title"
+                                     TextInputStyle="@MBTextInputStyle.Outlined"
+                                     Density="MBDensity.Compact" />
+                        <MBButton ButtonStyle="MBButtonStyle.ContainedUnelevated" type="submit" class="mdc-theme--on-primary mdc-theme--primary-bg"
+                                  Label="Save" style="margin-left: 25px;" />
+                    </EditForm>
+                }
+                else
+                {
+                    <h1 class="mdc-typography--headline3" style="margin-bottom: 0">@WorkbanchArticleState.Value.Article.Title</h1>
+                    <MBButton ButtonStyle="MBButtonStyle.ContainedUnelevated" class="mdc-theme--on-primary mdc-theme--primary-bg"
+                              Label="Edit" style="margin-left: 25px;" @onclick="() => isTitleEditing = true" />
+                }
+            </div>
+            <div style="display: flex; flex-wrap: wrap">
+                <MBButton ButtonStyle="MBButtonStyle.ContainedUnelevated" class="mdc-theme--on-primary mdc-theme--primary-bg" Label="Save" style="margin-right: 7px;" 
+                          @onclick="() => Dispatcher.Dispatch(new EditWorkbanchArticleContentAction(WorkbanchArticleState.Value.Article.Id, WorkbanchArticleState.Value.Article.Content))" />
+                @*@if (WorkbanchArticleState.Value.Article.CourseId != null)
+                {*@
+                    <MBButton ButtonStyle="MBButtonStyle.ContainedUnelevated" class="mdc-theme--on-primary mdc-theme--primary-bg" Label="Commit" style="margin-right: 7px;" @onclick="AddCommit" />
+                    <MBButton ButtonStyle="MBButtonStyle.ContainedUnelevated" LeadingIcon="arrow_back" class="mdc-theme--on-secondary mdc-theme--secondary-bg" Label="To Article" style="margin-right: 5px;"
+                              @onclick="@(() => NavigationManager.NavigateTo($"/courses/{WorkbanchArticleState.Value.Article.CourseId}/" +
+                                          WorkbanchArticleState.Value.Article.Id))" />
+                @*}*@
+            </div>
+        </div>
+        <RadzenHtmlEditor  @bind-Value="WorkbanchArticleState.Value.Article.Content" Execute="OnExecute" class="mdc-typography" UploadUrl="upload/image" Style="margin-bottom: 30px; min-height: 70vh; max-height: calc(100vh - 180px); padding: 2px;" Change="OnChange">
+            <RadzenHtmlEditorUndo />
+            <RadzenHtmlEditorRedo />
+            <RadzenHtmlEditorSeparator />
+            <RadzenHtmlEditorBold />
+            <RadzenHtmlEditorItalic />
+            <RadzenHtmlEditorUnderline />
+            <RadzenHtmlEditorStrikeThrough />
+            <RadzenHtmlEditorSeparator />
+            <RadzenHtmlEditorAlignLeft />
+            <RadzenHtmlEditorAlignCenter />
+            <RadzenHtmlEditorAlignRight />
+            <RadzenHtmlEditorJustify />
+            <RadzenHtmlEditorSeparator />
+            <RadzenHtmlEditorIndent />
+            <RadzenHtmlEditorOutdent />
+            <RadzenHtmlEditorUnorderedList />
+            <RadzenHtmlEditorOrderedList />
+            <RadzenHtmlEditorSeparator />
+            <RadzenHtmlEditorRemoveFormat />
+            <RadzenHtmlEditorSeparator />
+            <RadzenHtmlEditorSubscript />
+            <RadzenHtmlEditorSuperscript />
+            <RadzenHtmlEditorSeparator />
+            <RadzenHtmlEditorLink />
+            <RadzenHtmlEditorUnlink />
+            <RadzenHtmlEditorImage />
+            <RadzenHtmlEditorFormatBlock />
+        </RadzenHtmlEditor>
+        <NewCommitDialogComponent @ref="NewCommitDialog" Content="@WorkbanchArticleState.Value.Article.Content" ArticleId="ArticleId"/>
+    }
+}
+
+<style>
+    .rz-dialog {
+        width: 100vw;
+        height: 100%;
+        max-width: 100vw;
+    }
+
+    .rz-html-editor-toolbar {
+        position: sticky;
+        top: 50px;
+    }
+
+    .article-title-edit {
+        padding: 0;
+        line-height: 1.2;
+        font-size: 2.25rem;
+        font-weight: bold;
+        border: none;
+        width: 100%;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .article-content-edit {
+        border: none;
+        font-family: inherit;
+    }
+
+    input:focus {
+        border: none;
+        outline: none;
+    }
+</style>
+
+@code {
+
+    [Parameter]
+    public Guid ArticleId { get; set; }
+
+    private bool isTitleEditing = false;
+
+    string articleEditTitle = "";
+    string articleEditContent = "";
+
+    private NewCommitDialogComponent NewCommitDialog;
+
+    async Task OnExecute(HtmlEditorExecuteEventArgs args)
+    {
+        //if (args.CommandName == "SaveContent")
+        //{
+        //    await args.Editor.ExecuteCommandAsync(HtmlEditorCommands.InsertHtml, "");
+        //    Dispatcher.Dispatch(new SaveArticleContentAction(ArticleState.Value.CurrentArticle.Id,
+        //        ArticleState.Value.CurrentCommit.Id, articleContent));
+        //}
+    }
+
+    private void OnChange(string arg)
+    {
+        Console.WriteLine(arg.Replace("><", "> <"));
+    }
+
+    protected override void OnInitialized()
+    {
+        SetContent(null, WorkbanchArticleState.Value);
+        WorkbanchArticleState.StateChanged += SetContent;
+        Dispatcher.Dispatch(new FetchWorkbanchArticleAction(ArticleId));
+        base.OnInitialized();
+    }
+
+    private void OnEditTitleSubmit()
+    {
+        isTitleEditing = false;
+        Dispatcher.Dispatch(new EditWorkbanchArticleTitleAction(WorkbanchArticleState.Value.Article.Id,
+            articleEditTitle, WorkbanchArticleState.Value.Article.CourseId));
+    }
+
+    private async Task AddCommit()
+    {
+        await NewCommitDialog.ShowAsync();
+    }
+
+    private void SetContent(object sender, WorkbanchArticleState state)
+    {
+        if (state.Article != null)
+        {
+            articleEditTitle = state.Article.Title;
+            articleEditContent = state.Article.Content;
+        }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        WorkbanchArticleState.StateChanged -= SetContent;
+        base.Dispose(disposing);
+    }
+}

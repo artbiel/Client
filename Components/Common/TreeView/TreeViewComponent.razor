@@ -1,17 +1,18 @@
 ﻿@namespace Client.Components.Common
-@inject IState<DevModeState> DevModeState
 @inject IState<CourseState> CourseState
 
-@if (Records != null)
+@if (RootRecord != null)
 {
     <div class="tree-container" style=@("font-size: " + FontSize ?? "17px")>
-        @if (DevModeState.Value.Enabled)
+        @if (Editable)
         {
-            <TreeViewGroupItemComponent ActiveRecords="ActiveRecords" Record="Records.FirstOrDefault(r => r.Type == RecordType.Root)" />
+        <CascadingValue Value="Editable">
+            <TreeViewGroupItemComponent ActiveRecords="ActiveRecords" Record="RootRecord" />
+        </CascadingValue>
         }
         else
         {
-            foreach (var rec in Records.FirstOrDefault(r => r.Type == RecordType.Root)?.Children)
+            @foreach (var rec in RootRecord.Children)
             {
                 <TreeViewItemComponent Record="rec" ActiveRecords="ActiveRecords" />
             }
@@ -105,12 +106,12 @@
 
     .add-item {
         margin-right: 3px;
+        z-index: 2;
         width: 28px;
         height: 28px;
         border-radius: 50%;
         border: 1px solid silver;
         background: #ffffff;
-        z-index: 1000;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -124,8 +125,8 @@
     }
 
     .tree-container .node-child {
-        padding-left: 20px;
-        border-left: 1px solid silver;
+        padding-left: 30px;
+        /*border-left: 1px solid silver;*/
     }
 
     .tree-container .editor-wrapper {
@@ -185,8 +186,11 @@
     public string FontSize { get; set; }
 
     [Parameter]
-    public List<RecordMainInfoViewModel> Records { get; set; } = new();
+    public RecordVM RootRecord { get; set; }
 
     [Parameter]
-    public List<RecordMainInfoViewModel> ActiveRecords { get; set; } = new();
+    public List<RecordVM> ActiveRecords { get; set; }
+
+    [Parameter]
+    public bool Editable { get; set; }
 }

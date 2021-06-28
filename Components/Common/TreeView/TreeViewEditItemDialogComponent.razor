@@ -1,0 +1,60 @@
+﻿@namespace Client.Components.Common
+@inject IDispatcher Dispatcher
+
+<MBDialog @ref="@EditRecordDialog"
+          Title="Edit Record">
+    <Body>
+        <EditForm Model="EditingRecord" OnValidSubmit="OnSubmit">
+            <DataAnnotationsValidator />
+            <div class="mdc-layout-grid__inner">
+                <div class="mdc-layout-grid__cell--span-12">
+                    <MBSelect @bind-Value="@EditingRecord.Type"
+                              style="margin-top: 6px; width: 100%;"
+                              class="mdc-layout-grid__cell--span-12"
+                              Items="recordTypeValues"
+                              Disabled="true"
+                              ItemValidation="@MBItemValidation.DefaultToFirst"
+                              Label="Record Type"
+                              SelectInputStyle="MBSelectInputStyle.Outlined" />
+                </div>
+                <div class="mdc-layout-grid__cell--span-12">
+                    <MBTextField @bind-Value="@EditingRecord.Title"
+                                 style="width: 100%"
+                                 Label="Title"
+                                 TextInputStyle="@MBTextInputStyle.Outlined"
+                                 ValidationMessageFor="@(() => EditingRecord.Title)"
+                                 Density="MBDensity.Comfortable" />
+                </div>
+            </div>
+            <div class="mdc-layout-grid__cell--span-12" style="text-align: right;">
+                <MBButton Label="Edit" type="submit"></MBButton>
+                <MBButton Label="Cancel" type="button" @onclick="@(async () => { await EditRecordDialog.HideAsync(); })" ButtonStyle="@MBButtonStyle.Text"></MBButton>
+            </div>
+        </EditForm>
+    </Body>
+</MBDialog>
+
+@code {
+    [Parameter]
+    public RecordVM Record { get; set; }
+
+    private MBDialog EditRecordDialog;
+
+    private RecordVM EditingRecord;
+
+    MBSelectElement<RecordType>[] recordTypeValues = Enum.GetValues<RecordType>().Where(r => r != RecordType.Root)
+       .Select(v => new MBSelectElement<RecordType> { Label = Enum.GetName(v), SelectedValue = v }).ToArray();
+
+    protected override void OnInitialized()
+    {
+        EditingRecord = (RecordVM)Record.Clone();
+    }
+
+    private async Task OnSubmit()
+    {
+        Dispatcher.Dispatch(new EditWorkbanchCourseRecordAction(EditingRecord));
+        await EditRecordDialog.HideAsync();
+    }
+
+    public async Task ShowAsync() => await EditRecordDialog.ShowAsync();
+}

@@ -1,0 +1,62 @@
+﻿@inject IDispatcher Dispatcher
+
+<MBDialog @ref="@NewItemDialog"
+          Title="Create New Course">
+    <Body>
+        <EditForm Model="newCourse" OnValidSubmit="Submit">
+            <DataAnnotationsValidator />
+            <div class="mdc-layout-grid__inner">
+                <div class="mdc-layout-grid__cell--span-12">
+                    <MBTextField @bind-Value="@newCourse.Title"
+                                 style="margin-top: 6px; width: 100%;"
+                                 Label="Title"
+                                 TextInputStyle="@MBTextInputStyle.Outlined"
+                                 ValidationMessageFor="@(() => newCourse.Title)"
+                                 Density="MBDensity.Comfortable" />
+                </div>
+                <div class="mdc-layout-grid__cell--span-12">
+                    <MBTextArea @bind-Value="@newCourse.Description"
+                                 style="width: 100%;"
+                                 Label="Description"
+                                 TextInputStyle="@MBTextInputStyle.Outlined"
+                                 ValidationMessageFor="@(() => newCourse.Description)"
+                                 Density="MBDensity.Comfortable" />
+                </div>
+                <div class="mdc-layout-grid__cell--span-12">
+                    <MBSelect @bind-Value="@newCourse.Difficulty"
+                              style="width: 100%;"
+                              class="mdc-layout-grid__cell--span-12"
+                              Items="difficultyTypes"
+                              ItemValidation="@MBItemValidation.DefaultToFirst"
+                              Label="Difficulty"
+                              SelectInputStyle="MBSelectInputStyle.Outlined" />
+                </div>
+            </div>
+
+            <div class="mdc-layout-grid__cell--span-12" style="text-align: right;">
+                <MBButton Label="Create" type="submit"></MBButton>
+                <MBButton Label="Cancel" type="reset" @onclick="@(async () => { await NewItemDialog.HideAsync(); })" ButtonStyle="@MBButtonStyle.Text"></MBButton>
+            </div>
+        </EditForm>
+    </Body>
+</MBDialog>
+
+@code {
+
+    private MBDialog NewItemDialog;
+
+    private CreateCourseCommand newCourse = new CreateCourseCommand();
+
+    MBSelectElement<Difficulty>[] difficultyTypes = Enum.GetValues<Difficulty>()
+       .Select(v => new MBSelectElement<Difficulty> { Label = Enum.GetName(v), SelectedValue = v }).ToArray();
+
+    private async Task Submit()
+    {
+        Dispatcher.Dispatch(new CreateCourseAction(newCourse));
+        newCourse = new();
+        StateHasChanged();
+        await NewItemDialog.HideAsync();
+    }
+
+    public async Task ShowAsync() => await NewItemDialog.ShowAsync();
+}

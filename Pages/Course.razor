@@ -1,8 +1,8 @@
-﻿@page "/courses/{id:int}"
+﻿@page "/courses/{courseId:guid}"
 @inherits FluxorComponent
 @inject IDispatcher Dispatcher
-@inject IState<DevModeState> DevModeState
 @inject IState<CourseState> CourseState
+@inject NavigationManager NavigationManager
 
 @if (CourseState.Value.IsLoading)
 {
@@ -10,35 +10,71 @@
 }
 else
 {
-    <div class="course-wrapper">
-        <div class="course-header">
-            <img src="@CourseState.Value.CurrentCourse.ImgSrc" />
-            <div class="main-info">
-                <h2>@CourseState.Value.CurrentCourse.Name</h2>
-                <div><span style="font-weight: bolder">Difficulty:</span> @CourseState.Value.CurrentCourse.Difficulty</div>
-                <RatingComponent Rating="2.5" Total="228" />
-                <div class="badges">
-                    <span class="badge badge-light">Light</span>
-                    <span class="badge badge-light">Light</span>
-                    <span class="badge badge-light">Light</span>
-                    <span class="badge badge-light">Light</span>
-                    <span class="badge badge-light">Light</span>
-                    <span class="badge badge-light">Light</span>
-                    <span class="badge badge-light">Light</span>
-                    <span class="badge badge-light">Light</span>
+    @if (CourseState.Value.CurrentCourse == null)
+    {
+        <NotFoundComponent />
+    }
+    else
+    {
+        <div class="mdc-layout-grid">
+            <div class="mdc-layout-grid__inner">
+                <div class="mdc-layout-grid__cell--span-12">
+                    <MBCard AutoStyled="true"
+                            style="padding: 15px;"
+                            class="mb-ui-control">
+                        <Primary>
+                            <div style="display: flex; flex-direction: row;">
+                                <div class="mdc-card__media mb-card__media rounded-img">
+                                    <img src="@CourseState.Value.CurrentCourse.ImgSrc" class="rounded-img" />
+                                </div>
+                                <div class="mb-card__autostyled" style="width: 100%;">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap" style="width: 100%;">
+                                        <h1 class="mdc-typography--headline3">@CourseState.Value.CurrentCourse.Title</h1>
+                                        <MBButton ButtonStyle="MBButtonStyle.ContainedUnelevated" class="mdc-theme--on-primary mdc-theme--primary-bg" Label="Open in Workbanch"
+                                                  @onclick="OpenInWorkbanch" />
+                                    </div>
+                                    <RatingComponent Rating="@CourseState.Value.CurrentCourse.Rating.Rating" Total="CourseState.Value.CurrentCourse.Rating.VotersCount" />
+                                    <h3 class="mb-card__subtitle mdc-typography mdc-typography--subtitle2">Difficulty: @CourseState.Value.CurrentCourse.Difficulty</h3>
+                                </div>
+                            </div>
+                            <div class="mb-card__autostyled">
+
+                                <h6 class="mb-card__title mdc-typography mdc-typography--headline6">Description</h6>
+                                <span class="mb-card__subtitle mdc-typography mdc-typography--body2">@CourseState.Value.CurrentCourse.Description</span>
+                            </div>
+                        </Primary>
+                    </MBCard>
+                </div>
+                <div class="mdc-layout-grid__cell--span-6">
+                    <MBCard AutoStyled="true"
+                            class="mb-ui-control">
+                        <Primary>
+                            <h3 class="mdc-typography mdc-typography--headline5" style="text-align: center">Course structure</h3>
+                            <TreeViewComponent RootRecord="CourseState.Value.CurrentCourse.RootRecord" FontSize="19px" />
+                        </Primary>
+                    </MBCard>
+                </div>
+                <div class="mdc-layout-grid__cell--span-6">
+                    <MBCard AutoStyled="true"
+                            class="mb-ui-control">
+                        <Primary>
+                            <h3 class="mdc-typography mdc-typography--headline5" style="text-align: center">Course history</h3>
+                            @if (CourseState.Value.Commits != null)
+                            {
+                                <HistoryBranchComponent Commits="CourseState.Value.Commits?.Reverse<BaseCommit>().ToList()"
+                                                        ActiveCommitId="CourseState.Value.Commits.First().Id"
+                                                        GetIcon="GetHistoryItemIcon" />
+                            }
+                            else
+                            {
+                                <LoadingComponent />
+                            }
+                        </Primary>
+                    </MBCard>
                 </div>
             </div>
         </div>
-        <div class="course-body-wrapper">
-            <div class="course-description-wrapper ">
-                @CourseState.Value.CurrentCourse.Description
-            </div>
-            <h3 style="font-weight: bolder">Course structure</h3>
-            <TreeViewComponent Records="CourseState.Value.CurrentCourse.Records"
-                               ActiveRecords="CourseState.Value.CurrentCourse.Records?.Where(r => r.Type != RecordType.Article).ToList() ?? new()"
-                               FontSize="19px" />
-        </div>
-    </div>
+    }
 }
 
 <style>
@@ -50,11 +86,11 @@ else
         min-width: 200px;
     }
 
-    .course-header img {
+    .rounded-img {
         height: 150px;
         width: 150px;
         object-fit: cover;
-        border-radius: 50%;
+        border-radius: 50%!important;
     }
 
     .course-header .main-info{
@@ -93,18 +129,28 @@ else
 
 
     [Parameter]
-    public int Id { get; set; }
+    public Guid CourseId { get; set; }
+
+    private void OpenInWorkbanch()
+    {
+        Dispatcher.Dispatch(new ForkItemToWorkbanchAction(CourseState.Value.CurrentCourse, WorkbanchItemType.Course));
+        NavigationManager.NavigateTo($"/workbanch/course/{CourseState.Value.CurrentCourse.Id}");
+    }
 
     protected override void OnInitialized()
     {
-        DevModeState.StateChanged += (sender, state) =>
-        {
-            Dispatcher.Dispatch(new FetchCourseAction(Id, DevModeState.Value.Enabled));
-        };
-        Dispatcher.Dispatch(new FetchCourseAction(Id, DevModeState.Value.Enabled));
-        Console.WriteLine(CourseState.Value.CurrentCourse.Records?.Where(r => r.Type != RecordType.Article).Count());
+        Dispatcher.Dispatch(new FetchCourseAction(CourseId));
         base.OnInitialized();
     }
+
+    private string GetHistoryItemIcon(BaseCommit commit) =>
+       (commit as CourseCommitMainInfoVM).Type switch
+       {
+           CourseCommitType.Changed => "edit",
+           CourseCommitType.Added => "add",
+           CourseCommitType.Deleted => "delete",
+           _ => ""
+       };
 }
 
 

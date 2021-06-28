@@ -19,7 +19,7 @@
     left: 0;
     top: 50px;
     transition: 0.5s ease;
-    z-index: 1000;
+    z-index: 2;
 }
 
     .sidebar.showned {
